@@ -91,7 +91,6 @@
             this.rbIncremental = new System.Windows.Forms.RadioButton();
             this.rbBulk = new System.Windows.Forms.RadioButton();
             this.lblProgress = new System.Windows.Forms.Label();
-            this.chkAccGroup = new System.Windows.Forms.CheckBox();
             this.gbTallyMasters = new System.Windows.Forms.GroupBox();
             this.chkTallyGroup = new System.Windows.Forms.CheckBox();
             this.chkTallyUnit = new System.Windows.Forms.CheckBox();
@@ -552,7 +551,6 @@
             // 
             // gbBusyMasters
             // 
-            this.gbBusyMasters.Controls.Add(this.chkAccGroup);
             this.gbBusyMasters.Controls.Add(this.chkContactDepartment);
             this.gbBusyMasters.Controls.Add(this.chkState);
             this.gbBusyMasters.Controls.Add(this.chkCountry);
@@ -579,7 +577,7 @@
             // chkContactDepartment
             // 
             this.chkContactDepartment.AutoSize = true;
-            this.chkContactDepartment.Location = new System.Drawing.Point(257, 29);
+            this.chkContactDepartment.Location = new System.Drawing.Point(137, 29);
             this.chkContactDepartment.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkContactDepartment.Name = "chkContactDepartment";
             this.chkContactDepartment.Size = new System.Drawing.Size(180, 24);
@@ -590,7 +588,7 @@
             // chkState
             // 
             this.chkState.AutoSize = true;
-            this.chkState.Location = new System.Drawing.Point(287, 65);
+            this.chkState.Location = new System.Drawing.Point(284, 65);
             this.chkState.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkState.Name = "chkState";
             this.chkState.Size = new System.Drawing.Size(74, 24);
@@ -601,7 +599,7 @@
             // chkCountry
             // 
             this.chkCountry.AutoSize = true;
-            this.chkCountry.Location = new System.Drawing.Point(551, 65);
+            this.chkCountry.Location = new System.Drawing.Point(568, 65);
             this.chkCountry.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkCountry.Name = "chkCountry";
             this.chkCountry.Size = new System.Drawing.Size(90, 24);
@@ -612,7 +610,7 @@
             // chkEnqSource
             // 
             this.chkEnqSource.AutoSize = true;
-            this.chkEnqSource.Location = new System.Drawing.Point(127, 65);
+            this.chkEnqSource.Location = new System.Drawing.Point(114, 65);
             this.chkEnqSource.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkEnqSource.Name = "chkEnqSource";
             this.chkEnqSource.Size = new System.Drawing.Size(143, 24);
@@ -623,7 +621,7 @@
             // chkEnqCat
             // 
             this.chkEnqCat.AutoSize = true;
-            this.chkEnqCat.Location = new System.Drawing.Point(378, 65);
+            this.chkEnqCat.Location = new System.Drawing.Point(385, 65);
             this.chkEnqCat.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkEnqCat.Name = "chkEnqCat";
             this.chkEnqCat.Size = new System.Drawing.Size(156, 24);
@@ -634,7 +632,7 @@
             // chkSupCat
             // 
             this.chkSupCat.AutoSize = true;
-            this.chkSupCat.Location = new System.Drawing.Point(658, 65);
+            this.chkSupCat.Location = new System.Drawing.Point(685, 65);
             this.chkSupCat.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkSupCat.Name = "chkSupCat";
             this.chkSupCat.Size = new System.Drawing.Size(160, 24);
@@ -645,7 +643,7 @@
             // chkArea
             // 
             this.chkArea.AutoSize = true;
-            this.chkArea.Location = new System.Drawing.Point(835, 64);
+            this.chkArea.Location = new System.Drawing.Point(872, 64);
             this.chkArea.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkArea.Name = "chkArea";
             this.chkArea.Size = new System.Drawing.Size(69, 24);
@@ -656,7 +654,7 @@
             // chkUnit
             // 
             this.chkUnit.AutoSize = true;
-            this.chkUnit.Location = new System.Drawing.Point(784, 29);
+            this.chkUnit.Location = new System.Drawing.Point(756, 29);
             this.chkUnit.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkUnit.Name = "chkUnit";
             this.chkUnit.Size = new System.Drawing.Size(64, 24);
@@ -667,7 +665,7 @@
             // chkItemGroup
             // 
             this.chkItemGroup.AutoSize = true;
-            this.chkItemGroup.Location = new System.Drawing.Point(528, 29);
+            this.chkItemGroup.Location = new System.Drawing.Point(454, 29);
             this.chkItemGroup.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkItemGroup.Name = "chkItemGroup";
             this.chkItemGroup.Size = new System.Drawing.Size(116, 24);
@@ -681,15 +679,15 @@
             this.chkItem.Location = new System.Drawing.Point(20, 65);
             this.chkItem.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkItem.Name = "chkItem";
-            this.chkItem.Size = new System.Drawing.Size(90, 24);
+            this.chkItem.Size = new System.Drawing.Size(67, 24);
             this.chkItem.TabIndex = 4;
-            this.chkItem.Text = "Product";
+            this.chkItem.Text = "Item";
             this.chkItem.UseVisualStyleBackColor = true;
             // 
             // chkExecutive
             // 
             this.chkExecutive.AutoSize = true;
-            this.chkExecutive.Location = new System.Drawing.Point(848, 29);
+            this.chkExecutive.Location = new System.Drawing.Point(843, 29);
             this.chkExecutive.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkExecutive.Name = "chkExecutive";
             this.chkExecutive.Size = new System.Drawing.Size(103, 24);
@@ -700,7 +698,7 @@
             // chkContactGroup
             // 
             this.chkContactGroup.AutoSize = true;
-            this.chkContactGroup.Location = new System.Drawing.Point(644, 29);
+            this.chkContactGroup.Location = new System.Drawing.Point(593, 29);
             this.chkContactGroup.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkContactGroup.Name = "chkContactGroup";
             this.chkContactGroup.Size = new System.Drawing.Size(140, 24);
@@ -711,7 +709,7 @@
             // chkContact
             // 
             this.chkContact.AutoSize = true;
-            this.chkContact.Location = new System.Drawing.Point(437, 29);
+            this.chkContact.Location = new System.Drawing.Point(340, 29);
             this.chkContact.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkContact.Name = "chkContact";
             this.chkContact.Size = new System.Drawing.Size(91, 24);
@@ -772,17 +770,6 @@
             this.lblProgress.Size = new System.Drawing.Size(607, 70);
             this.lblProgress.TabIndex = 87;
             this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // chkAccGroup
-            // 
-            this.chkAccGroup.AutoSize = true;
-            this.chkAccGroup.Location = new System.Drawing.Point(114, 29);
-            this.chkAccGroup.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.chkAccGroup.Name = "chkAccGroup";
-            this.chkAccGroup.Size = new System.Drawing.Size(143, 24);
-            this.chkAccGroup.TabIndex = 14;
-            this.chkAccGroup.Text = "Account Group";
-            this.chkAccGroup.UseVisualStyleBackColor = true;
             // 
             // gbTallyMasters
             // 
@@ -860,7 +847,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1224, 667);
+            this.ClientSize = new System.Drawing.Size(1223, 654);
             this.Controls.Add(this.gbTallyMasters);
             this.Controls.Add(this.lblProgress);
             this.Controls.Add(this.btnStart);
@@ -960,7 +947,6 @@
         private System.Windows.Forms.CheckBox chkCountry;
         private System.Windows.Forms.CheckBox chkContactDepartment;
         private System.Windows.Forms.Label lblProgress;
-        private System.Windows.Forms.CheckBox chkAccGroup;
         private System.Windows.Forms.GroupBox gbTallyMasters;
         private System.Windows.Forms.CheckBox chkTallyGroup;
         private System.Windows.Forms.CheckBox chkTallyUnit;

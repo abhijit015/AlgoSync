@@ -144,7 +144,6 @@ namespace AlgoSync
                 chkState.Checked = bool.Parse(lines[i]); i++;
                 chkCountry.Checked = bool.Parse(lines[i]); i++;
                 chkContactDepartment.Checked = bool.Parse(lines[i]); i++;
-                chkAccGroup.Checked = bool.Parse(lines[i]); i++;
                 chkTallyGroup.Checked = bool.Parse(lines[i]); i++;
                 chkTallyLedger.Checked = bool.Parse(lines[i]); i++;
                 chkTallyStockGroup.Checked = bool.Parse(lines[i]); i++;
@@ -177,14 +176,11 @@ namespace AlgoSync
                 chkState.Checked = true;
                 chkCountry.Checked = true;
                 chkContactDepartment.Checked = true;
-                chkAccGroup.Checked = true;
                 chkTallyGroup.Checked = true;
                 chkTallyLedger.Checked = true;
                 chkTallyStockGroup.Checked = true;
                 chkTallyStockItem.Checked = true;
                 chkTallyUnit.Checked = true;
-
-                lblCRM.Text = "Credentials Not Verified";
             }
 
             if (string.IsNullOrWhiteSpace(txtAppPath.Text))
@@ -434,7 +430,9 @@ namespace AlgoSync
         {
             bool proceed = true;
             string errMsg = "";
-            Dictionary<int, string> masterTypeTags;
+            Dictionary<int, string> jsonMasters;
+            Dictionary<int, string> xmlMasters;
+            Dictionary<int, string> qryMasters;
             Dictionary<int, List<object>> codesByMasterType = new Dictionary<int, List<object>>();
             dynamic rst;
             string outputJson = "";
@@ -442,6 +440,7 @@ namespace AlgoSync
             JObject finalJson = new JObject();
             string appPath = AppDomain.CurrentDomain.BaseDirectory;
             string jsonFilePath = System.IO.Path.Combine(appPath, "jsonData.txt");
+            string masterTypesCsv = "";
 
             try
             {
@@ -461,10 +460,30 @@ namespace AlgoSync
                     {
                         Cursor.Current = Cursors.WaitCursor;
 
-                        masterTypeTags = new Dictionary<int, string>
+                        jsonMasters = new Dictionary<int, string>
                         {
                             { ACC_MAST, "accounts" },
-                            { AGRP_MAST, "accountGroups" },
+                            { CONT_GRP_MAST, "contactGroups" },
+                            { EXECUTIVE_MAST, "executives" },
+                            { ITEM_MAST, "items" },
+                            { IGRP_MAST, "itemGroups" },
+                            { UNIT_MAST, "units" },
+                            { AREA_MAST, "areas" },
+                            { STATE_MAST, "states" },
+                            { COUNTRY_MAST, "countries" },
+                            { CONT_DEPT_MAST, "contactDepartments" },
+                        };
+
+                        qryMasters = new Dictionary<int, string>
+                        {
+                            { CALL_CATEGORY_ENQUIRY_MAST, "accounts" },
+                            { CRM_SOURCE_MAST, "contactGroups" },
+                            { CALL_CATEGORY_SUPPORT_MAST, "executives" },
+                        };
+
+                        xmlMasters = new Dictionary<int, string>
+                        {
+                            { CONTACT_MAST, "contacts" },
                             { CONT_GRP_MAST, "contactGroups" },
                             { EXECUTIVE_MAST, "executives" },
                             { ITEM_MAST, "items" },
@@ -477,17 +496,10 @@ namespace AlgoSync
                         };
 
                         //---------------------------------------------------
-                        var excludedMasters = new HashSet<int>
-                        {
-                            CONTACT_MAST,
-                            CALL_CATEGORY_ENQUIRY_MAST,
-                            CRM_SOURCE_MAST,
-                            CALL_CATEGORY_SUPPORT_MAST
-                        };
 
-                        string masterTypesCsv = string.Join(
+                        masterTypesCsv = string.Join(
                             ",",
-                            checkedMasters.Where(m => !excludedMasters.Contains(m))
+                            checkedMasters.Where(m => jsonMasters.ContainsKey(m))
                         );
                   
                         query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
@@ -522,7 +534,7 @@ namespace AlgoSync
                                 int masterType = kvp.Key;
                                 List<object> codes = kvp.Value;
 
-                                if (!masterTypeTags.TryGetValue(masterType, out string tag))
+                                if (!jsonMasters.TryGetValue(masterType, out string tag))
                                     continue;
 
                                 if (!groupedJson.ContainsKey(tag))
@@ -555,7 +567,10 @@ namespace AlgoSync
 
 
                         //logic for source and category masters---------------
-                        query = "select name,mastertype from master1 where mastertype in (" + CALL_CATEGORY_ENQUIRY_MAST + "," + CALL_CATEGORY_SUPPORT_MAST + "," + CRM_SOURCE_MAST + ")";
+                        var qryMasterTypes = checkedMasters.Where(m => qryMasters.ContainsKey(m)).ToList();
+                        string qryMasterTypesCsv = string.Join(",", qryMasterTypes);
+
+                        query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
                             query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
@@ -565,78 +580,22 @@ namespace AlgoSync
 
                         if (rst != null)
                         {
-                            var enquiryCategories = new JArray();
-                            var supportCategories = new JArray();
-                            var enquirySources = new JArray();
+                            var arraysByTag = new Dictionary<string, JArray>();
+                            foreach (var masterType in qryMasterTypes)
+                            {
+                                if (qryMasters.TryGetValue(masterType, out string tag))
+                                    arraysByTag[tag] = new JArray();
+                            }
 
                             while (!rst.EOF)
                             {
                                 int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
                                 string name = rst.Fields["NAME"].Value?.ToString();
 
-                                var obj = new JObject
+                                if (qryMasters.TryGetValue(masterType, out string tag) && arraysByTag.ContainsKey(tag))
                                 {
-                                    ["name"] = name
-                                };
-
-                                if (masterType == CALL_CATEGORY_ENQUIRY_MAST)
-                                    enquiryCategories.Add(obj);
-                                else if (masterType == CALL_CATEGORY_SUPPORT_MAST)
-                                    supportCategories.Add(obj);
-                                else if (masterType == CRM_SOURCE_MAST)
-                                    enquirySources.Add(obj);
-
-                                rst.MoveNext();
-                            }
-
-                            rst.Close();
-
-                            if (enquiryCategories.Count > 0)
-                                finalJson["enquiryCategories"] = enquiryCategories;
-                            if (supportCategories.Count > 0)
-                                finalJson["supportCategories"] = supportCategories;
-                            if (enquirySources.Count > 0)
-                                finalJson["enquirySources"] = enquirySources;
-                        }
-                        //logic for source and category masters---------------
-
-
-
-
-                        //logic for contact master------------------------------
-                        query = "select code from master1 where mastertype in (" + CONTACT_MAST + ")";
-                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                        {
-                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
-                        }
-
-                        rst = FI.GetRecordset(query);
-
-                        if (rst != null)
-                        {
-                            var contacts = new JArray();
-
-                            while (!rst.EOF)
-                            {
-                                var code = rst.Fields["CODE"].Value;
-                                string xmlStr = FI.GetMasterXML(code);
-
-                                if (!string.IsNullOrWhiteSpace(xmlStr))
-                                {
-                                    try
-                                    {
-                                        XmlDocument doc = new XmlDocument();
-                                        doc.LoadXml(xmlStr);
-
-                                        string jsonText = JsonConvert.SerializeXmlNode(doc.DocumentElement, Newtonsoft.Json.Formatting.None, true);
-                                        JObject contactObj = JObject.Parse(jsonText);
-
-                                        contacts.Add(contactObj);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        // Optionally handle or log XML/JSON conversion errors
-                                    }
+                                    var obj = new JObject { ["name"] = name };
+                                    arraysByTag[tag].Add(obj);
                                 }
 
                                 rst.MoveNext();
@@ -644,8 +603,65 @@ namespace AlgoSync
 
                             rst.Close();
 
-                            if (contacts.Count > 0)
-                                finalJson["contacts"] = contacts;
+                            foreach (var kvp in arraysByTag)
+                            {
+                                if (kvp.Value.Count > 0)
+                                    finalJson[kvp.Key] = kvp.Value;
+                            }
+                        }
+                        //logic for source and category masters---------------
+
+
+
+
+                        //logic for contact master------------------------------
+                        if (chkContact.Checked)
+                        {
+                            string contactTag = xmlMasters.ContainsKey(CONTACT_MAST) ? xmlMasters[CONTACT_MAST] : "contacts";
+
+                            query = "select code from master1 where mastertype in (" + CONTACT_MAST + ")";
+                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
+                            {
+                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                            }
+
+                            rst = FI.GetRecordset(query);
+
+                            if (rst != null)
+                            {
+                                var contacts = new JArray();
+
+                                while (!rst.EOF)
+                                {
+                                    var code = rst.Fields["CODE"].Value;
+                                    string xmlStr = FI.GetMasterXML(code);
+
+                                    if (!string.IsNullOrWhiteSpace(xmlStr))
+                                    {
+                                        try
+                                        {
+                                            XmlDocument doc = new XmlDocument();
+                                            doc.LoadXml(xmlStr);
+
+                                            string jsonText = JsonConvert.SerializeXmlNode(doc.DocumentElement, Newtonsoft.Json.Formatting.None, true);
+                                            JObject contactObj = JObject.Parse(jsonText);
+
+                                            contacts.Add(contactObj);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            // Optionally handle or log XML/JSON conversion errors
+                                        }
+                                    }
+
+                                    rst.MoveNext();
+                                }
+
+                                rst.Close();
+
+                                if (contacts.Count > 0)
+                                    finalJson[contactTag] = contacts;
+                            }
                         }
                         //logic for contact master------------------------------
 
@@ -886,7 +902,6 @@ namespace AlgoSync
                 else
                 { 
                     if (chkAccount.Checked) checkedMasters.Add(ACC_MAST);
-                    if (chkAccGroup.Checked) checkedMasters.Add(AGRP_MAST);
                     if (chkContactGroup.Checked) checkedMasters.Add(CONT_GRP_MAST);
                     if (chkExecutive.Checked) checkedMasters.Add(EXECUTIVE_MAST);
                     if (chkItem.Checked) checkedMasters.Add(ITEM_MAST);
@@ -974,7 +989,7 @@ namespace AlgoSync
             }
         }
 
-        void VerifyCRMCreds()
+         private void VerifyCRMCreds()
         {
             bool proceed = true;
             string errMsg = "";
@@ -991,17 +1006,19 @@ namespace AlgoSync
 
             if (proceed)
             {
-                proceed = VerifyAlgoCRMCreds(txtCRMUsername.Text.Trim(), txtCRMPassword.Text.Trim(), txtCRMCompCode.Text.Trim(), ref errMsg);
+                // call api
             }
 
             if (proceed)
             {
                 m_CRMCredsVerified = true;
+                lblCRM.ForeColor = System.Drawing.Color.Green;
                 lblCRM.Text = "Credentials Verified.\r\n\r\nCompany Name : ";
             }
             else
             {
                 m_CRMCredsVerified = false;
+                lblCRM.ForeColor = System.Drawing.Color.Red;
                 lblCRM.Text = "Credentials Not Verified";
             }
 
@@ -1060,7 +1077,6 @@ namespace AlgoSync
                 chkState.Checked.ToString(),
                 chkCountry.Checked.ToString(),
                 chkContactDepartment.Checked.ToString(),
-                chkAccGroup.Checked.ToString(),
                 chkTallyGroup.Checked.ToString(),
                 chkTallyLedger.Checked.ToString(),
                 chkTallyStockGroup.Checked.ToString(),
@@ -1417,11 +1433,6 @@ namespace AlgoSync
         }
 
 
-        bool VerifyAlgoCRMCreds(string p_Username, string p_Password, string p_CompCode, ref string p_ErrMsg)
-        {
-            bool proceed = true;
-
-            return proceed;
-        }
+        
     }
 }
