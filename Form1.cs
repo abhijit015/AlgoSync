@@ -778,20 +778,6 @@ namespace AlgoSync
                             string fileName = System.IO.Path.GetFileName(jsonFilePath);
                             form.Add(fileContent, "file", fileName);
 
-                            foreach (var content in form)
-                            {
-                                Console.WriteLine($"Content Headers: {content.Headers}");
-                                if (content is StringContent)
-                                {
-                                    var value = content.ReadAsStringAsync().Result;
-                                    Console.WriteLine($"StringContent: {value}");
-                                }
-                                else if (content is StreamContent)
-                                {
-                                    Console.WriteLine("StreamContent: (file content not displayed)");
-                                }
-                            }
-
                             string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/setData";
 
                             var response = client.PostAsync(apiUrl, form).Result;
