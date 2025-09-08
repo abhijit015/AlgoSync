@@ -767,11 +767,9 @@ namespace AlgoSync
                         {
                            
                             client.DefaultRequestHeaders.Add("X-Source-Software", "Busy");
-
                        
                             form.Add(new System.Net.Http.StringContent(m_UserId.ToString()), "user_id");
                             form.Add(new System.Net.Http.StringContent(m_CompanyId.ToString()), "company_id");
-
 
                             var fileContent = new System.Net.Http.StreamContent(fileStream);
                             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
@@ -1024,7 +1022,6 @@ namespace AlgoSync
                     string.IsNullOrWhiteSpace(txtCRMCompCode.Text))
                 {
                     proceed = false;
-                    errMsg = "Please specify all AlgoCRM details.";
                 }
             }
 
