@@ -81,6 +81,8 @@ namespace AlgoSync
         bool m_CRMCredsVerified = false;
         DateTime? m_lastSyncDate = null;
         List<int> checkedMasters = new List<int>();
+        int m_UserId;
+        int m_CompanyId;
 
         public Form1()
         {
@@ -757,47 +759,79 @@ namespace AlgoSync
                 {
                     System.IO.File.WriteAllText(jsonFilePath, outputJson);
 
-                    using (var client = new System.Net.Http.HttpClient())
-                    using (var form = new System.Net.Http.MultipartFormDataContent())
-                    using (var fileStream = System.IO.File.OpenRead(jsonFilePath))
+                    try
                     {
-                        var fileContent = new System.Net.Http.StreamContent(fileStream);
-                        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
-                        form.Add(fileContent, "file", "jsonData.txt"); 
-
-                        string apiUrl = "https://your-crm-api-endpoint.com/upload";
-
-                        var response = client.PostAsync(apiUrl, form).Result;
-
-                        if (response.IsSuccessStatusCode)
+                        using (var client = new System.Net.Http.HttpClient())
+                        using (var form = new System.Net.Http.MultipartFormDataContent())
+                        using (var fileStream = System.IO.File.OpenRead(jsonFilePath))
                         {
+                           
+                            client.DefaultRequestHeaders.Add("X-Source-Software", "Busy");
+
+                       
+                            form.Add(new System.Net.Http.StringContent(m_UserId.ToString()), "user_id");
+                            form.Add(new System.Net.Http.StringContent(m_CompanyId.ToString()), "company_id");
+
+
+                            var fileContent = new System.Net.Http.StreamContent(fileStream);
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+                            string fileName = System.IO.Path.GetFileName(jsonFilePath);
+                            form.Add(fileContent, "file", fileName);
+
+                            foreach (var content in form)
+                            {
+                                Console.WriteLine($"Content Headers: {content.Headers}");
+                                if (content is StringContent)
+                                {
+                                    var value = content.ReadAsStringAsync().Result;
+                                    Console.WriteLine($"StringContent: {value}");
+                                }
+                                else if (content is StreamContent)
+                                {
+                                    Console.WriteLine("StreamContent: (file content not displayed)");
+                                }
+                            }
+
+                            string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/setData";
+
+                            var response = client.PostAsync(apiUrl, form).Result;
+
                             string responseBody = response.Content.ReadAsStringAsync().Result;
 
-                            var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
-
-                            bool status = jsonObj.Value<bool>("status");
-                            string message = jsonObj.Value<string>("message");
-                            var data = jsonObj["data"];  
-
-                            if(status)
+                            if (response.IsSuccessStatusCode)
                             {
+                                var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
 
+                                bool status = jsonObj.Value<bool>("status");
+                                string message = jsonObj.Value<string>("message");
+                                var data = jsonObj["data"];
+
+                                if (status)
+                                {
+                                    // Success logic
+                                }
+                                else
+                                {
+                                    proceed = false;
+                                    errMsg = message;
+                                }
                             }
                             else
                             {
                                 proceed = false;
-                                errMsg = message;
+                                errMsg = "Error occurred while transferring data.";
                             }
                         }
-                        else
-                        {
-                            proceed = false;
-                            errMsg = "Error occurred while transferring data.";
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        proceed = false;
+                        errMsg = ex.Message;
                     }
 
                     System.IO.File.Delete(jsonFilePath);
                 }
+
                 //call crm api and transfer data------------------------
 
 
@@ -806,7 +840,7 @@ namespace AlgoSync
                 {
                     m_lastSyncDate=DateTime.Now;
                     lblProgress.Text = "";
-                    MessageBox.Show("Operation completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Data transfer completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -989,31 +1023,81 @@ namespace AlgoSync
             }
         }
 
-         private void VerifyCRMCreds()
+        private void VerifyCRMCreds()
         {
             bool proceed = true;
             string errMsg = "";
+            string companyName = "";
 
             m_CRMCredsVerified = false;
 
             if (proceed)
             {
-                if (string.IsNullOrWhiteSpace(txtCRMUsername.Text) || string.IsNullOrWhiteSpace(txtCRMPassword.Text) || string.IsNullOrWhiteSpace(txtCRMCompCode.Text))
+                if (string.IsNullOrWhiteSpace(txtCRMUsername.Text) ||
+                    string.IsNullOrWhiteSpace(txtCRMPassword.Text) ||
+                    string.IsNullOrWhiteSpace(txtCRMCompCode.Text))
                 {
                     proceed = false;
+                    errMsg = "Please specify all AlgoCRM details.";
                 }
             }
 
             if (proceed)
             {
-                // call api
+                try
+                {
+                    string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/verifyUserCompany";
+                    var payload = new
+                    {
+                        contact = txtCRMUsername.Text.Trim(),
+                        password = txtCRMPassword.Text.Trim(),
+                        c_id = txtCRMCompCode.Text.Trim()
+                    };
+
+                    using (var client = new HttpClient())
+                    {
+                        var json = JsonConvert.SerializeObject(payload);
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var response = client.PostAsync(apiUrl, content).Result;
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var responseBody = response.Content.ReadAsStringAsync().Result;
+                            var jObj = JObject.Parse(responseBody);
+
+                            bool status = jObj.Value<bool>("status");
+                            if (status)
+                            {
+                                companyName = jObj["data"]?["companyName"]?.ToString() ?? "";
+                                m_UserId = jObj["data"]?["user_id"]?.Value<int>() ?? 0;
+                                m_CompanyId = jObj["data"]?["company_id"]?.Value<int>() ?? 0;
+                            }
+                            else
+                            {
+                                proceed = false;
+                                errMsg = jObj.Value<string>("message");
+                            }
+                                
+                        }
+                        else
+                        {
+                            proceed = false;
+                            errMsg = "Unknown error occurred.";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    proceed = false;
+                    errMsg = ex.Message;
+                }
             }
 
             if (proceed)
             {
                 m_CRMCredsVerified = true;
                 lblCRM.ForeColor = System.Drawing.Color.Green;
-                lblCRM.Text = "Credentials Verified.\r\n\r\nCompany Name : ";
+                lblCRM.Text = "Credentials Verified.\r\n\r\nCompany Name : " + companyName;
             }
             else
             {
@@ -1027,6 +1111,7 @@ namespace AlgoSync
                 MessageBox.Show(errMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         void btnCRMVerify_Click(object sender, EventArgs e)
         {
@@ -1432,7 +1517,20 @@ namespace AlgoSync
 
         }
 
+        string ReadBaseURLFromTextFile()
+        {
+            string fileName = "baseurl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string retval = "";
 
+               
+            if (File.Exists(filePath))
+            {
+                retval = File.ReadAllText(filePath);
+            }
+
+            return retval;
+        }
         
     }
 }

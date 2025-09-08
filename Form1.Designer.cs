@@ -115,7 +115,7 @@
             this.gbTally.Controls.Add(this.lblTallyPort);
             this.gbTally.Controls.Add(this.txtTallyPort);
             this.gbTally.Controls.Add(this.txtTallyServer);
-            this.gbTally.Location = new System.Drawing.Point(18, 203);
+            this.gbTally.Location = new System.Drawing.Point(602, 194);
             this.gbTally.Name = "gbTally";
             this.gbTally.Size = new System.Drawing.Size(608, 406);
             this.gbTally.TabIndex = 63;
@@ -183,7 +183,7 @@
             this.gbCRM.Controls.Add(this.txtCRMCompCode);
             this.gbCRM.Controls.Add(this.lblCRMPassword);
             this.gbCRM.Controls.Add(this.txtCRMPassword);
-            this.gbCRM.Location = new System.Drawing.Point(632, 145);
+            this.gbCRM.Location = new System.Drawing.Point(18, 146);
             this.gbCRM.Name = "gbCRM";
             this.gbCRM.Size = new System.Drawing.Size(578, 406);
             this.gbCRM.TabIndex = 64;
@@ -362,7 +362,7 @@
             this.gbBusy.Controls.Add(this.btnBrowseDataPath);
             this.gbBusy.Controls.Add(this.txtDataPath);
             this.gbBusy.Controls.Add(this.txtAppPath);
-            this.gbBusy.Location = new System.Drawing.Point(18, 145);
+            this.gbBusy.Location = new System.Drawing.Point(602, 146);
             this.gbBusy.Name = "gbBusy";
             this.gbBusy.Size = new System.Drawing.Size(608, 406);
             this.gbBusy.TabIndex = 62;
@@ -847,7 +847,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1223, 654);
+            this.ClientSize = new System.Drawing.Size(1231, 655);
             this.Controls.Add(this.gbTallyMasters);
             this.Controls.Add(this.lblProgress);
             this.Controls.Add(this.btnStart);
