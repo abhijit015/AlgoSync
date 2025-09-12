@@ -1046,7 +1046,7 @@ namespace AlgoSync
             {
                 try
                 {
-                    string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/verifyUserCompany";
+                    string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/verifyUserCompanyPair";
                     var payload = new
                     {
                         contact = txtCRMUsername.Text.Trim(),
