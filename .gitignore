@@ -17,7 +17,6 @@
 mono_crash.*
 
 # Build results
-[Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
@@ -27,11 +26,15 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-[Bb]in/
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
 [Ll]ogs/
+
+# Track only bin\Debug, ignore other bin folders
+[Bb]in/
+!bin/Debug/
+!bin/Debug/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -224,9 +227,7 @@ _pkginfo.txt
 *.appxupload
 
 # Visual Studio cache files
-# files ending in .cache can be ignored
 *.[Cc]ache
-# but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
 # Others
