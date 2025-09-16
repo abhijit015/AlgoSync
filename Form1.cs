@@ -792,7 +792,7 @@ namespace AlgoSync
                             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                             form.Add(fileContent);
 
-                            string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/setData";
+                            string apiUrl = ReadSetDataAPIURLFromTextFile();
 
                             var response = client.PostAsync(apiUrl, form).Result;
                             string responseBody = response.Content.ReadAsStringAsync().Result;
@@ -1046,7 +1046,7 @@ namespace AlgoSync
             {
                 try
                 {
-                    string apiUrl = ReadBaseURLFromTextFile() + "/api/integration/verifyUserCompanyPair";
+                    string apiUrl = ReadVerifyAPIURLFromTextFile();
                     var payload = new
                     {
                         contact = txtCRMUsername.Text.Trim(),
@@ -1517,9 +1517,9 @@ namespace AlgoSync
 
         }
 
-        string ReadBaseURLFromTextFile()
+        string ReadVerifyAPIURLFromTextFile()
         {
-            string fileName = "baseurl.txt";
+            string fileName = "verifyCompanyUrl.txt";
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             string retval = "";
 
@@ -1531,6 +1531,21 @@ namespace AlgoSync
 
             return retval;
         }
-        
+
+        string ReadSetDataAPIURLFromTextFile()
+        {
+            string fileName = "setDataUrl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string retval = "";
+
+
+            if (File.Exists(filePath))
+            {
+                retval = File.ReadAllText(filePath);
+            }
+
+            return retval;
+        }
+
     }
 }
