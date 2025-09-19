@@ -1547,5 +1547,26 @@ namespace AlgoSync
             return retval;
         }
 
+        private void txtCRMUsername_TextChanged(object sender, EventArgs e)
+        {
+            UnvalidateCRMCreds();
+        }
+
+        void UnvalidateCRMCreds()
+        {
+            m_CRMCredsVerified = false;
+            lblCRM.ForeColor = System.Drawing.Color.Red;
+            lblCRM.Text = "Credentials Not Verified";
+         }
+
+        private void txtCRMPassword_TextChanged(object sender, EventArgs e)
+        {
+            UnvalidateCRMCreds();
+        }
+
+        private void txtCRMCompCode_TextChanged(object sender, EventArgs e)
+        {
+            UnvalidateCRMCreds();
+        }
     }
 }

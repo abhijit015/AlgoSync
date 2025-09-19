@@ -236,6 +236,7 @@
             this.txtCRMUsername.Name = "txtCRMUsername";
             this.txtCRMUsername.Size = new System.Drawing.Size(366, 26);
             this.txtCRMUsername.TabIndex = 64;
+            this.txtCRMUsername.TextChanged += new System.EventHandler(this.txtCRMUsername_TextChanged);
             // 
             // lblCRMCompCode
             // 
@@ -252,6 +253,7 @@
             this.txtCRMCompCode.Name = "txtCRMCompCode";
             this.txtCRMCompCode.Size = new System.Drawing.Size(366, 26);
             this.txtCRMCompCode.TabIndex = 62;
+            this.txtCRMCompCode.TextChanged += new System.EventHandler(this.txtCRMCompCode_TextChanged);
             // 
             // lblCRMPassword
             // 
@@ -269,6 +271,7 @@
             this.txtCRMPassword.PasswordChar = '*';
             this.txtCRMPassword.Size = new System.Drawing.Size(366, 26);
             this.txtCRMPassword.TabIndex = 60;
+            this.txtCRMPassword.TextChanged += new System.EventHandler(this.txtCRMPassword_TextChanged);
             // 
             // rbBusy
             // 
