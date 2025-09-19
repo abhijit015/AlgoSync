@@ -1554,9 +1554,13 @@ namespace AlgoSync
 
         void UnvalidateCRMCreds()
         {
-            m_CRMCredsVerified = false;
-            lblCRM.ForeColor = System.Drawing.Color.Red;
-            lblCRM.Text = "Credentials Not Verified";
+            if(m_CRMCredsVerified)
+            {
+                m_CRMCredsVerified = false;
+                lblCRM.ForeColor = System.Drawing.Color.Red;
+                lblCRM.Text = "Credentials Not Verified";
+            }
+            
          }
 
         private void txtCRMPassword_TextChanged(object sender, EventArgs e)
