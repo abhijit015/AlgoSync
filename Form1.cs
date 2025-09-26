@@ -875,6 +875,7 @@ namespace AlgoSync
         bool ValidateDataB4StartingProcess(ref string p_ErrMsg)
         {
             bool proceed = true;
+            int finYear = Convert.ToInt16(cbFinYr.Text);
 
             if (rbBusy.Checked)
             {
@@ -989,11 +990,11 @@ namespace AlgoSync
                 {
                     if (rbAccess.Checked)
                     {
-                        proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbFinYr.SelectedIndex]);
+                        proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
                     }
                     else
                     {
-                        proceed = FI.OpenCSDB(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex]);
+                        proceed = FI.OpenCSDBForYear(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
                     }
 
                     if (!proceed)
