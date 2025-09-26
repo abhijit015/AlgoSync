@@ -989,7 +989,7 @@ namespace AlgoSync
                 {
                     if (rbAccess.Checked)
                     {
-                        proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex]);
+                        proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbFinYr.SelectedIndex]);
                     }
                     else
                     {
