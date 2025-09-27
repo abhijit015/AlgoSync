@@ -10,71 +10,13 @@ using System.Text;
 using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using AlgoSync;
+using System.Threading;
 
 namespace AlgoSync
 {
-    public partial class Form1: Form
+    public partial class Form1 : Form
     {
-        const int AGRP_MAST = 1;
-        const int ACC_MAST = 2;
-        const int CCGRP_MAST = 3;
-        const int CC_MAST = 4;
-        const int IGRP_MAST = 5;
-        const int ITEM_MAST = 6;
-        const int CUR_MAST = 7;
-        const int UNIT_MAST = 8;
-        const int BS_MAST = 9;
-        const int MCGRP_MAST = 10;
-        const int MC_MAST = 11;
-        const int FORM_MAST = 12;
-        const int ST_MAST = 13;
-        const int PT_MAST = 14;
-        const int BOM_MAST = 15;
-        const int UNITCON_MAST = 16;
-        const int CURCON_MAST = 17;
-        const int SN_MAST = 18;
-        const int BROKER_MAST = 19;
-        const int AUTHOR_MAST = 20;
-        const int SERIES_MAST = 21;
-        const int TDS_MAST = 22;
-        const int PARTY_MAST = 23;
-        const int BRANCH_MAST = 24;
-        const int TAX_CATEGORY_MAST = 25;
-        const int MAST_SERIES_GRP_MAST = 26;
-        const int EMPLOYEE_MAST = 27;
-        const int EMP_GRP_MAST = 28;
-        const int SALARY_COMPONENT_MAST = 29;
-        const int DS_MAST = 30;
-        const int MS_MAST = 31;
-        const int SCHEME_MAST = 32;
-        const int EXECUTIVE_MAST = 33;
-        const int CONT_GRP_MAST = 34;
-        const int CONTACT_MAST = 36;
-        const int VCH_SERIES_GRP_MAST = 51;
-        const int BILL_REFGRP_MAST = 52;
-        const int BATCH_REFGRP_MAST = 53;
-        const int ORDER_REFGRP_MAST = 54;
-        const int COUNTRY_MAST = 55;
-        const int STATE_MAST = 56;
-        const int CITY_MAST = 57;
-        const int REGION_MAST = 58;
-        const int AREA_MAST = 59;
-        const int CONT_DEPT_MAST = 60;
-        const int CRM_SOURCE_MAST = 61;
-        const int CALL_CLOSE_SUB_STATUS_MAST = 62;
-        const int NEXT_ACTION_MAST = 63;
-        const int SALUTATION_MAST = 64;
-        const int CALL_OPEN_SUB_STATUS_MAST = 65;
-        const int CALL_CATEGORY_ENQUIRY_MAST = 66;
-        const int CALL_CATEGORY_SUPPORT_MAST = 67;
-        const int TRADE_MAST = 68;
-        const int ITEM_CATEGORY_MAST = 69;
-        const int ACC_CATEGORY_MAST = 70;
-        const int USER_MAST = 71;
-        const int NMCATEGORY_MAST = 101;
-        const int FAQ_GRP_ENQUIRY_MAST = 102;
-        const int FAQ_GRP_SUPPORT_MAST = 103;
-
         dynamic FI;
         dynamic FI1;
         List<string> lstCompCodes = new List<string>();
@@ -83,6 +25,11 @@ namespace AlgoSync
         List<int> checkedMasters = new List<int>();
         int m_UserId;
         int m_CompanyId;
+        Dictionary<int, string> jsonMasters;
+        Dictionary<int, string> xmlMasters;
+        Dictionary<int, string> qryMasters;
+        private CancellationTokenSource _cts = null;
+
 
         public Form1()
         {
@@ -101,22 +48,48 @@ namespace AlgoSync
             int savedFinYrIdx = -1;
             int i = 0;
 
+            jsonMasters = new Dictionary<int, string>
+                        {
+                            { g_CL.ACC_MAST, "accounts" },
+                            { g_CL.CONT_GRP_MAST, "contactGroups" },
+                            { g_CL.EXECUTIVE_MAST, "executives" },
+                            { g_CL.ITEM_MAST, "items" },
+                            { g_CL.IGRP_MAST, "itemGroups" },
+                            { g_CL.UNIT_MAST, "units" },
+                            { g_CL.AREA_MAST, "areas" },
+                            { g_CL.STATE_MAST, "states" },
+                            { g_CL.COUNTRY_MAST, "countries" },
+                            { g_CL.CONT_DEPT_MAST, "contactDepartments" },
+                        };
+
+            qryMasters = new Dictionary<int, string>
+                        {
+                            { g_CL.CALL_CATEGORY_ENQUIRY_MAST, "enquiryCategories" },
+                            { g_CL.CRM_SOURCE_MAST, "enquirySources" },
+                            { g_CL.CALL_CATEGORY_SUPPORT_MAST, "supportCategories" },
+                        };
+
+            xmlMasters = new Dictionary<int, string>
+                        {
+                            { g_CL.CONTACT_MAST, "contacts" }
+                        };
+
             try
             {
                 FI = Activator.CreateInstance(Type.GetTypeFromProgID("Busy2L21.CFixedInterface"));
                 FI1 = Activator.CreateInstance(Type.GetTypeFromProgID("Busy2L21.CFixedInterface1"));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
-            
+
 
             if (System.IO.File.Exists("userdata.txt"))
             {
                 string[] lines = System.IO.File.ReadAllLines("userdata.txt");
-                 
-                txtAppPath.Text = lines[i];i++;
+
+                txtAppPath.Text = lines[i]; i++;
                 txtDataPath.Text = lines[i]; i++;
                 txtServerName.Text = lines[i]; i++;
                 txtUsername.Text = lines[i]; i++;
@@ -157,14 +130,14 @@ namespace AlgoSync
 
                 ActionOnProductTypeChange();
                 ActionOnDBTypeChange();
-                VerifyCRMCreds();   
+                VerifyCRMCreds();
             }
             else
             {
                 rbBusy.Checked = true;
                 rbAccess.Checked = true;
                 rbBulk.Checked = true;
-                chkAccount.Checked= true;
+                chkAccount.Checked = true;
                 chkContact.Checked = true;
                 chkContactGroup.Checked = true;
                 chkExecutive.Checked = true;
@@ -223,7 +196,9 @@ namespace AlgoSync
             lblTally.BackColor = Form1.DefaultBackColor;
             lblCRM.BackColor = Form1.DefaultBackColor;
             lblProgress.BackColor = Form1.DefaultBackColor;
+            lblProgress2.BackColor = Form1.DefaultBackColor;
 
+            btnStop.Enabled = false;
             btnLoadCompanies.Focus();
         }
 
@@ -240,7 +215,7 @@ namespace AlgoSync
                 gbTally.Visible = false;
                 gbDatabase.Visible = true;
                 gbDataTransferType.Visible = true;
-                gbBusyMasters.Visible= true;
+                gbBusyMasters.Visible = true;
                 gbTallyMasters.Visible = false;
             }
             else
@@ -278,9 +253,9 @@ namespace AlgoSync
 
             LoadBusyCompListToCombo();
 
-            if(rbAccess.Checked)
+            if (rbAccess.Checked)
             {
-                btnLoadCompanies.Top=txtDataPath.Top + 30;
+                btnLoadCompanies.Top = txtDataPath.Top + 30;
             }
             else
             {
@@ -346,9 +321,9 @@ namespace AlgoSync
                         {
                             cbSelectCompany.SelectedIndex = 0;
                         }
-                         
+
                     }
-                     
+
                 }
             }
             else
@@ -370,14 +345,14 @@ namespace AlgoSync
                         {
                             cbSelectCompany.SelectedIndex = 0;
                         }
-                         
+
                     }
                 }
-                 
+
             }
 
         }
-        
+
 
         void cbSelectCompany_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -401,17 +376,17 @@ namespace AlgoSync
 
         void txtServerName_Leave(object sender, EventArgs e)
         {
-            
+
         }
 
         void txtUsername_Leave(object sender, EventArgs e)
         {
-            
+
         }
 
         void txtPassword_Leave(object sender, EventArgs e)
         {
-            
+
         }
 
         void btnLoadCompanies_Click(object sender, EventArgs e)
@@ -430,444 +405,15 @@ namespace AlgoSync
 
         async void btnStart_Click(object sender, EventArgs e)
         {
-            bool proceed = true;
-            string errMsg = "";
-            Dictionary<int, string> jsonMasters;
-            Dictionary<int, string> xmlMasters;
-            Dictionary<int, string> qryMasters;
-            Dictionary<int, List<object>> codesByMasterType = new Dictionary<int, List<object>>();
-            dynamic rst;
-            string outputJson = "";
-            string query = "";
-            JObject finalJson = new JObject();
-            string appPath = AppDomain.CurrentDomain.BaseDirectory;
-            string jsonFilePath = System.IO.Path.Combine(appPath, "jsonData.txt");
-            string masterTypesCsv = "";
+            _cts = new CancellationTokenSource();
 
             try
             {
-                Cursor.Current = Cursors.WaitCursor;
-
-                if (proceed)
-                {
-                    proceed = ValidateDataB4StartingProcess(ref errMsg);
-                }
-               
-
-                if(rbBusy.Checked)
-                {
-                    
-
-                    if (proceed)
-                    {
-                        Cursor.Current = Cursors.WaitCursor;
-
-                        jsonMasters = new Dictionary<int, string>
-                        {
-                            { ACC_MAST, "accounts" },
-                            { CONT_GRP_MAST, "contactGroups" },
-                            { EXECUTIVE_MAST, "executives" },
-                            { ITEM_MAST, "items" },
-                            { IGRP_MAST, "itemGroups" },
-                            { UNIT_MAST, "units" },
-                            { AREA_MAST, "areas" },
-                            { STATE_MAST, "states" },
-                            { COUNTRY_MAST, "countries" },
-                            { CONT_DEPT_MAST, "contactDepartments" },
-                        };
-
-                        qryMasters = new Dictionary<int, string>
-                        {
-                            { CALL_CATEGORY_ENQUIRY_MAST, "enquiryCategories" },
-                            { CRM_SOURCE_MAST, "enquirySources" },
-                            { CALL_CATEGORY_SUPPORT_MAST, "supportCategories" },
-                        };
-
-                        xmlMasters = new Dictionary<int, string>
-                        {
-                            { CONTACT_MAST, "contacts" },
-                            { CONT_GRP_MAST, "contactGroups" },
-                            { EXECUTIVE_MAST, "executives" },
-                            { ITEM_MAST, "items" },
-                            { IGRP_MAST, "itemGroups" },
-                            { UNIT_MAST, "units" },
-                            { AREA_MAST, "areas" },
-                            { STATE_MAST, "states" },
-                            { COUNTRY_MAST, "countries" },
-                            { CONT_DEPT_MAST, "contactDepartments" },
-                        };
-                        //---------------------------------------------------
-
-                        masterTypesCsv = string.Join(
-                            ",",
-                            checkedMasters.Where(m => jsonMasters.ContainsKey(m))
-                        );
-                  
-                        query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
-                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                        {
-                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
-                        }
-
-                        rst = FI.GetRecordset(query);
-
-                        if (rst != null)
-                        {
-                            while (!rst.EOF)
-                            {
-                                int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
-                                var code = rst.Fields["CODE"].Value;
-
-                                if (!codesByMasterType.ContainsKey(masterType))
-                                    codesByMasterType[masterType] = new List<object>();
-
-                                codesByMasterType[masterType].Add(code);
-
-                                rst.MoveNext();
-                            }
-
-                            rst.Close();
-
-                            var groupedJson = new Dictionary<string, List<string>>();
-
-                            foreach (var kvp in codesByMasterType)
-                            {
-                                int masterType = kvp.Key;
-                                List<object> codes = kvp.Value;
-
-                                if (!jsonMasters.TryGetValue(masterType, out string tag))
-                                    continue;
-
-                                if (!groupedJson.ContainsKey(tag))
-                                    groupedJson[tag] = new List<string>();
-
-                                foreach (var codeObj in codes)
-                                {
-                                    long code = Convert.ToInt64(codeObj);
-                                    string json = FI1.GetMastJSON(code);
-                                    groupedJson[tag].Add(json);
-                                }
-                            }
-
-                            foreach (var kvp in groupedJson)
-                            {
-                                string tag = kvp.Key;
-                                List<string> jsonStrings = kvp.Value;
-
-                                JArray arr = new JArray();
-                                foreach (var jsonStr in jsonStrings)
-                                {
-                                    arr.Add(JObject.Parse(jsonStr));
-                                }
-                                finalJson[tag] = arr;
-                            }
-                        }
-                        //---------------------------------------------------
-
-
-
-
-                        //logic for source and category masters---------------
-                        var qryMasterTypes = checkedMasters.Where(m => qryMasters.ContainsKey(m)).ToList();
-                        string qryMasterTypesCsv = string.Join(",", qryMasterTypes);
-
-                        query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ")";
-                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                        {
-                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
-                        }
-
-                        rst = FI.GetRecordset(query);
-
-                        if (rst != null)
-                        {
-                            var arraysByTag = new Dictionary<string, JArray>();
-                            foreach (var masterType in qryMasterTypes)
-                            {
-                                if (qryMasters.TryGetValue(masterType, out string tag))
-                                    arraysByTag[tag] = new JArray();
-                            }
-
-                            while (!rst.EOF)
-                            {
-                                int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
-                                string name = rst.Fields["NAME"].Value?.ToString();
-
-                                if (qryMasters.TryGetValue(masterType, out string tag) && arraysByTag.ContainsKey(tag))
-                                {
-                                    var obj = new JObject { ["name"] = name };
-                                    arraysByTag[tag].Add(obj);
-                                }
-
-                                rst.MoveNext();
-                            }
-
-                            rst.Close();
-
-                            foreach (var kvp in arraysByTag)
-                            {
-                                if (kvp.Value.Count > 0)
-                                    finalJson[kvp.Key] = kvp.Value;
-                            }
-                        }
-                        //logic for source and category masters---------------
-
-
-
-
-                        //logic for contact master------------------------------
-                        if (chkContact.Checked)
-                        {
-                            string contactTag = xmlMasters.ContainsKey(CONTACT_MAST) ? xmlMasters[CONTACT_MAST] : "contacts";
-
-                            query = "select code from master1 where mastertype in (" + CONTACT_MAST + ")";
-                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                            {
-                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
-                            }
-
-                            rst = FI.GetRecordset(query);
-
-                            if (rst != null)
-                            {
-                                var contacts = new JArray();
-
-                                while (!rst.EOF)
-                                {
-                                    var code = rst.Fields["CODE"].Value;
-                                    string xmlStr = FI.GetMasterXML(code);
-
-                                    if (!string.IsNullOrWhiteSpace(xmlStr))
-                                    {
-                                        try
-                                        {
-                                            XmlDocument doc = new XmlDocument();
-                                            doc.LoadXml(xmlStr);
-
-                                            string jsonText = JsonConvert.SerializeXmlNode(doc.DocumentElement, Newtonsoft.Json.Formatting.None, true);
-                                            JObject contactObj = JObject.Parse(jsonText);
-
-                                            contacts.Add(contactObj);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            // Optionally handle or log XML/JSON conversion errors
-                                        }
-                                    }
-
-                                    rst.MoveNext();
-                                }
-
-                                rst.Close();
-
-                                if (contacts.Count > 0)
-                                    finalJson[contactTag] = contacts;
-                            }
-                        }
-                        //logic for contact master------------------------------
-
-                    }
-                }
-                else
-                {
-                     
-                    if(proceed)
-                    {
-                        if(chkTallyLedger.Checked)
-                        {
-                            outputJson = await GetTallyMasterXML(ACC_MAST);
-                            if (!string.IsNullOrEmpty(outputJson))
-                            {
-                                JObject ledgerObj = JObject.Parse(outputJson);
-                                JToken ledgers = ledgerObj["ledgers"];
-                                if (ledgers != null)
-                                    finalJson["ledgers"] = ledgers;
-                            }
-                        }
-
-                        if (chkTallyGroup.Checked)
-                        {
-                            outputJson = await GetTallyMasterXML(AGRP_MAST);
-                            if (!string.IsNullOrEmpty(outputJson))
-                            {
-                                JObject ledgerObj = JObject.Parse(outputJson);
-                                JToken ledgers = ledgerObj["groups"];
-                                if (ledgers != null)
-                                    finalJson["groups"] = ledgers;
-                            }
-                        }
-
-                        if (chkTallyStockItem.Checked)
-                        {
-                            outputJson = await GetTallyMasterXML(ITEM_MAST);
-                            if (!string.IsNullOrEmpty(outputJson))
-                            {
-                                JObject ledgerObj = JObject.Parse(outputJson);
-                                JToken ledgers = ledgerObj["stockitems"];
-                                if (ledgers != null)
-                                    finalJson["stockItems"] = ledgers;
-                            }
-                        }
-
-                        if (chkTallyStockGroup.Checked)
-                        {
-                            outputJson = await GetTallyMasterXML(IGRP_MAST);
-                            if (!string.IsNullOrEmpty(outputJson))
-                            {
-                                JObject ledgerObj = JObject.Parse(outputJson);
-                                JToken ledgers = ledgerObj["stockgroups"];
-                                if (ledgers != null)
-                                    finalJson["stockGroups"] = ledgers;
-                            }
-                        }
-
-                        if (chkTallyUnit.Checked)
-                        {
-                            outputJson = await GetTallyMasterXML(UNIT_MAST);
-                            if (!string.IsNullOrEmpty(outputJson))
-                            {
-                                JObject ledgerObj = JObject.Parse(outputJson);
-                                JToken ledgers = ledgerObj["units"];
-                                if (ledgers != null)
-                                    finalJson["units"] = ledgers;
-                            }
-                        }
-
-                    }
-                        
-                }
-
-
-                if(proceed)
-                {
-                    if (finalJson.HasValues)
-                    {
-                        outputJson = finalJson.ToString(Newtonsoft.Json.Formatting.None);
-                    }
-                    else
-                    {
-                        proceed = false;
-                        errMsg = "No data found to sync.";
-                    }
-                }
-
-
-
-                //call crm api and transfer data------------------------
-                // Code Generated by Sidekick is for learning and experimentation purposes only.
-                if (proceed)
-                {
-                    System.IO.File.WriteAllText(jsonFilePath, outputJson);
-
-                    try
-                    {
-                        using (var client = new System.Net.Http.HttpClient())
-                        using (var form = new System.Net.Http.MultipartFormDataContent())
-                        using (var fileStream = System.IO.File.OpenRead(jsonFilePath))
-                        {
-                            client.DefaultRequestHeaders.Add("X-Source-Software", "Busy");
-
-                            // Add string contents with explicit Content-Disposition
-                            var userIdContent = new System.Net.Http.StringContent(m_UserId.ToString());
-                            userIdContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
-                            {
-                                Name = "\"user_id\""
-                            };
-                            form.Add(userIdContent);
-
-                            var companyIdContent = new System.Net.Http.StringContent(m_CompanyId.ToString());
-                            companyIdContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
-                            {
-                                Name = "\"company_id\""
-                            };
-                            form.Add(companyIdContent);
-
-                            // Add file content with explicit Content-Disposition and Content-Type
-                            var fileContent = new System.Net.Http.StreamContent(fileStream);
-                            fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
-                            {
-                                Name = "\"file\"",
-                                FileName = $"\"{System.IO.Path.GetFileName(jsonFilePath)}\""
-                            };
-                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-                            form.Add(fileContent);
-
-                            string apiUrl = ReadSetDataAPIURLFromTextFile();
-
-                            var response = client.PostAsync(apiUrl, form).Result;
-                            string responseBody = response.Content.ReadAsStringAsync().Result;
-
-                            if (response.IsSuccessStatusCode)
-                            {
-                                var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
-
-                                bool status = jsonObj.Value<bool>("status");
-                                string message = jsonObj.Value<string>("message");
-                                var data = jsonObj["data"];
-
-                                if (status)
-                                {
-                                    // Success logic
-                                }
-                                else
-                                {
-                                    proceed = false;
-                                    errMsg = message;
-                                }
-                            }
-                            else
-                            {
-                                proceed = false;
-                                errMsg = "Error occurred while transferring data.";
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        proceed = false;
-                        errMsg = ex.Message;
-                    }
-
-                    System.IO.File.Delete(jsonFilePath);
-                }
-
-
-
-                //call crm api and transfer data------------------------
-
-
-
-                if (proceed) 
-                {
-                    m_lastSyncDate=DateTime.Now;
-                    lblProgress.Text = "";
-                    MessageBox.Show("Data transfer completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    if(!string.IsNullOrWhiteSpace(errMsg))
-                    {
-                        MessageBox.Show(errMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                await RunMainProcessAsync(_cts.Token);
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                string fullMessage = ex.Message;
-                Exception inner = ex.InnerException;
-                while (inner != null)
-                {
-                    fullMessage += "\nInner Exception: " + inner.Message;
-                    inner = inner.InnerException;
-                }
-                MessageBox.Show(fullMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                lblProgress.Text = "";
-                if(rbBusy.Checked) FI.CloseDB();
-                SetAllControlsEnabled(this, true);
-                Cursor.Current = Cursors.Default;
+                MessageBox.Show("Process stopped by user.", "Stopped", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
         }
@@ -904,7 +450,7 @@ namespace AlgoSync
                 if (lblTally.Text.Trim() == "")
                 {
                     proceed = false;
-                    p_ErrMsg="Tally company not detected, make sure company is open in tally.";
+                    p_ErrMsg = "Tally company not detected, make sure company is open in tally.";
                 }
 
                 if (string.IsNullOrWhiteSpace(txtTallyPort.Text) || string.IsNullOrWhiteSpace(txtTallyServer.Text))
@@ -916,7 +462,7 @@ namespace AlgoSync
 
             if (proceed)
             {
-                if(!m_CRMCredsVerified)
+                if (!m_CRMCredsVerified)
                 {
                     proceed = false;
                     p_ErrMsg = "Please verify the AlgoCRM credentials in order to proceed further.";
@@ -927,30 +473,30 @@ namespace AlgoSync
             {
                 checkedMasters.Clear();
 
-                if(rbTally.Checked)
+                if (rbTally.Checked)
                 {
-                    if (chkTallyLedger.Checked) checkedMasters.Add(ACC_MAST);
-                    if (chkTallyGroup.Checked) checkedMasters.Add(AGRP_MAST); 
-                    if (chkTallyStockItem.Checked) checkedMasters.Add(ITEM_MAST);
-                    if (chkTallyStockGroup.Checked) checkedMasters.Add(IGRP_MAST);
-                    if (chkTallyUnit.Checked) checkedMasters.Add(UNIT_MAST);
+                    if (chkTallyLedger.Checked) checkedMasters.Add(g_CL.ACC_MAST);
+                    if (chkTallyGroup.Checked) checkedMasters.Add(g_CL.AGRP_MAST);
+                    if (chkTallyStockItem.Checked) checkedMasters.Add(g_CL.ITEM_MAST);
+                    if (chkTallyStockGroup.Checked) checkedMasters.Add(g_CL.IGRP_MAST);
+                    if (chkTallyUnit.Checked) checkedMasters.Add(g_CL.UNIT_MAST);
                 }
                 else
-                { 
-                    if (chkAccount.Checked) checkedMasters.Add(ACC_MAST);
-                    if (chkContactGroup.Checked) checkedMasters.Add(CONT_GRP_MAST);
-                    if (chkExecutive.Checked) checkedMasters.Add(EXECUTIVE_MAST);
-                    if (chkItem.Checked) checkedMasters.Add(ITEM_MAST);
-                    if (chkItemGroup.Checked) checkedMasters.Add(IGRP_MAST);
-                    if (chkUnit.Checked) checkedMasters.Add(UNIT_MAST);
-                    if (chkArea.Checked) checkedMasters.Add(AREA_MAST);
-                    if (chkState.Checked) checkedMasters.Add(STATE_MAST);
-                    if (chkCountry.Checked) checkedMasters.Add(COUNTRY_MAST);
-                    if (chkContactDepartment.Checked) checkedMasters.Add(CONT_DEPT_MAST);
-                    if (chkContact.Checked) checkedMasters.Add(CONTACT_MAST);
-                    if (chkEnqCat.Checked) checkedMasters.Add(CALL_CATEGORY_ENQUIRY_MAST);
-                    if (chkEnqSource.Checked) checkedMasters.Add(CRM_SOURCE_MAST);
-                    if (chkSupCat.Checked) checkedMasters.Add(CALL_CATEGORY_SUPPORT_MAST);
+                {
+                    if (chkAccount.Checked) checkedMasters.Add(g_CL.ACC_MAST);
+                    if (chkContactGroup.Checked) checkedMasters.Add(g_CL.CONT_GRP_MAST);
+                    if (chkExecutive.Checked) checkedMasters.Add(g_CL.EXECUTIVE_MAST);
+                    if (chkItem.Checked) checkedMasters.Add(g_CL.ITEM_MAST);
+                    if (chkItemGroup.Checked) checkedMasters.Add(g_CL.IGRP_MAST);
+                    if (chkUnit.Checked) checkedMasters.Add(g_CL.UNIT_MAST);
+                    if (chkArea.Checked) checkedMasters.Add(g_CL.AREA_MAST);
+                    if (chkState.Checked) checkedMasters.Add(g_CL.STATE_MAST);
+                    if (chkCountry.Checked) checkedMasters.Add(g_CL.COUNTRY_MAST);
+                    if (chkContactDepartment.Checked) checkedMasters.Add(g_CL.CONT_DEPT_MAST);
+                    if (chkContact.Checked) checkedMasters.Add(g_CL.CONTACT_MAST);
+                    if (chkEnqCat.Checked) checkedMasters.Add(g_CL.CALL_CATEGORY_ENQUIRY_MAST);
+                    if (chkEnqSource.Checked) checkedMasters.Add(g_CL.CRM_SOURCE_MAST);
+                    if (chkSupCat.Checked) checkedMasters.Add(g_CL.CALL_CATEGORY_SUPPORT_MAST);
                 }
 
                 if (checkedMasters.Count == 0)
@@ -958,11 +504,11 @@ namespace AlgoSync
                     proceed = false;
                     p_ErrMsg = "Please select at least one master type to sync.";
                 }
-   
+
             }
 
 
-            if(proceed)
+            if (proceed)
             {
                 DialogResult result = MessageBox.Show(
                         "Starting data transfer. Please review all details before proceeding and click Yes to continue.",
@@ -971,7 +517,7 @@ namespace AlgoSync
                         MessageBoxIcon.Question
                     );
 
-                if(result != DialogResult.Yes)
+                if (result != DialogResult.Yes)
                 {
                     proceed = false;
                 }
@@ -981,11 +527,14 @@ namespace AlgoSync
             if (proceed)
             {
                 Cursor.Current = Cursors.WaitCursor;
-                lblProgress.Text = "Data Transfer In Progress... Please wait.";
                 SetAllControlsEnabled(this, false);
                 lblProgress.Enabled = true;
+                lblProgress2.Enabled = true;
+                btnStop.Enabled = true;
                 Application.DoEvents();
 
+
+                lblProgress.Text = "Establishing connection...";
                 if (rbBusy.Checked)
                 {
                     if (rbAccess.Checked)
@@ -1169,7 +718,7 @@ namespace AlgoSync
                 chkTallyStockItem.Checked.ToString(),
                 chkTallyUnit.Checked.ToString(),
 
-                cbSelectCompany.SelectedIndex.ToString(), 
+                cbSelectCompany.SelectedIndex.ToString(),
                 cbFinYr.SelectedIndex.ToString(),
                 m_lastSyncDate.ToString()
             };
@@ -1219,14 +768,14 @@ namespace AlgoSync
         {
             string xmlPayload = "<ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Collection</TYPE><ID>All Masters</ID></HEADER>";
             xmlPayload += "<BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT></STATICVARIABLES>";
-            xmlPayload += "<TDL><TDLMESSAGE><COLLECTION NAME=\"All Masters\" ISMODIFY=\"No\"><TYPE>" + p_Master +"</TYPE><FETCH>*.*</FETCH></COLLECTION></TDLMESSAGE></TDL>";
+            xmlPayload += "<TDL><TDLMESSAGE><COLLECTION NAME=\"All Masters\" ISMODIFY=\"No\"><TYPE>" + p_Master + "</TYPE><FETCH>*.*</FETCH></COLLECTION></TDLMESSAGE></TDL>";
             xmlPayload += "</DESC></BODY></ENVELOPE>";
 
             return xmlPayload;
         }
 
 
-    
+
         async Task<string> GetTallyMasterXML(int p_Mastertype)
         {
             string TallyServer = txtTallyServer.Text.Trim() + ":" + txtTallyPort.Text.Trim();
@@ -1235,11 +784,11 @@ namespace AlgoSync
             // Map master type to master name and tag name
             var masterMap = new Dictionary<int, (string masterName, string tagName)>
             {
-                { ACC_MAST,  ("Ledger",     "LEDGER") },
-                { AGRP_MAST, ("Group",      "GROUP") },
-                { ITEM_MAST, ("StockItem",  "STOCKITEM") },
-                { IGRP_MAST, ("StockGroup", "STOCKGROUP") },
-                { UNIT_MAST, ("Unit",       "UNIT") }
+                { g_CL.ACC_MAST,  ("Ledger",     "LEDGER") },
+                { g_CL.AGRP_MAST, ("Group",      "GROUP") },
+                { g_CL.ITEM_MAST, ("StockItem",  "STOCKITEM") },
+                { g_CL.IGRP_MAST, ("StockGroup", "STOCKGROUP") },
+                { g_CL.UNIT_MAST, ("Unit",       "UNIT") }
             };
 
             if (!masterMap.TryGetValue(p_Mastertype, out var masterInfo))
@@ -1524,7 +1073,7 @@ namespace AlgoSync
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             string retval = "";
 
-               
+
             if (File.Exists(filePath))
             {
                 retval = File.ReadAllText(filePath);
@@ -1555,14 +1104,22 @@ namespace AlgoSync
 
         void UnvalidateCRMCreds()
         {
-            if(m_CRMCredsVerified)
+            if (m_CRMCredsVerified)
             {
                 m_CRMCredsVerified = false;
                 lblCRM.ForeColor = System.Drawing.Color.Red;
                 lblCRM.Text = "Credentials Not Verified";
             }
-            
-         }
+
+        }
+
+        string GetMasterTypeTag(int masterType)
+        {
+            if (jsonMasters.TryGetValue(masterType, out string tag)) return tag;
+            if (qryMasters.TryGetValue(masterType, out tag)) return tag;
+            if (xmlMasters.TryGetValue(masterType, out tag)) return tag;
+            return null; // or a default string
+        }
 
         private void txtCRMPassword_TextChanged(object sender, EventArgs e)
         {
@@ -1572,6 +1129,512 @@ namespace AlgoSync
         private void txtCRMCompCode_TextChanged(object sender, EventArgs e)
         {
             UnvalidateCRMCreds();
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            _cts?.Cancel();
+        }
+
+        async Task RunMainProcessAsync(CancellationToken token)
+        {
+
+            bool proceed = true;
+            string errMsg = "";
+            Dictionary<int, List<object>> codesByMasterType = new Dictionary<int, List<object>>();
+            dynamic rst;
+            string outputJson = "";
+            string query = "";
+            JObject finalJson = new JObject();
+            string appPath = AppDomain.CurrentDomain.BaseDirectory;
+            string jsonFilePath = System.IO.Path.Combine(appPath, "jsonData.txt");
+            string masterTypesCsv = "";
+            long totalMasters = 0;
+            long processedMasters = 0;
+
+            try
+            {
+                Cursor.Current = Cursors.WaitCursor;
+
+                if (proceed)
+                {
+                    proceed = ValidateDataB4StartingProcess(ref errMsg);
+                    token.ThrowIfCancellationRequested();
+                }
+
+
+                if (rbBusy.Checked)
+                {
+
+
+                    if (proceed)
+                    {
+                        Cursor.Current = Cursors.WaitCursor;
+
+                        //fetching masters count : start -------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        lblProgress.Text = "Fetching count of masters...";
+                        Application.DoEvents();
+
+                        masterTypesCsv = string.Join(",", checkedMasters);
+                        query = "SELECT COUNT(code) FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
+                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
+                        {
+                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                        }
+
+                        rst = FI.GetRecordset(query);
+
+                        if (rst != null && !rst.EOF)
+                        {
+                            totalMasters = Convert.ToInt32(rst.Fields[0].Value);
+                            rst.Close();
+                        }
+                        //fetching masters count : end -------------------------------------------
+
+
+
+                        //fetching all json masters : start -------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        masterTypesCsv = string.Join(
+                            ",",
+                            checkedMasters.Where(m => jsonMasters.ContainsKey(m))
+                        );
+
+                        query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ") order by mastertype";
+                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
+                        {
+                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                        }
+
+                        rst = FI.GetRecordset(query);
+
+                        if (rst != null)
+                        {
+                            while (!rst.EOF)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
+                                var code = rst.Fields["CODE"].Value;
+
+                                if (!codesByMasterType.ContainsKey(masterType))
+                                    codesByMasterType[masterType] = new List<object>();
+
+                                codesByMasterType[masterType].Add(code);
+
+                                rst.MoveNext();
+                            }
+
+                            rst.Close();
+
+                            var groupedJson = new Dictionary<string, List<string>>();
+
+                            foreach (var kvp in codesByMasterType)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                int masterType = kvp.Key;
+                                lblProgress.Text = "Fetching " + GetMasterTypeTag(masterType) + "...";
+                                List<object> codes = kvp.Value;
+
+                                if (!jsonMasters.TryGetValue(masterType, out string tag))
+                                    continue;
+
+                                if (!groupedJson.ContainsKey(tag))
+                                    groupedJson[tag] = new List<string>();
+
+                                foreach (var codeObj in codes)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    long code = Convert.ToInt64(codeObj);
+                                    string json = FI1.GetMastJSON(code);
+                                    processedMasters = processedMasters + 1;
+                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
+                                    Application.DoEvents();
+                                    groupedJson[tag].Add(json);
+                                }
+                            }
+
+                            foreach (var kvp in groupedJson)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                string tag = kvp.Key;
+                                List<string> jsonStrings = kvp.Value;
+
+                                JArray arr = new JArray();
+                                foreach (var jsonStr in jsonStrings)
+                                {
+                                    arr.Add(JObject.Parse(jsonStr));
+                                }
+                                finalJson[tag] = arr;
+                            }
+                        }
+                        //fetching all json masters : end -------------------------------------------
+
+
+
+
+                        //fetching all qry masters : start -------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        var qryMasterTypes = checkedMasters.Where(m => qryMasters.ContainsKey(m)).ToList();
+                        string qryMasterTypesCsv = string.Join(",", qryMasterTypes);
+
+                        if (qryMasterTypes.Count > 0)
+                        {
+                            lblProgress.Text = "Fetching category and source masters...";
+                            Application.DoEvents();
+
+                            query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ") order by mastertype";
+                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
+                            {
+                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                            }
+
+                            rst = FI.GetRecordset(query);
+
+                            if (rst != null)
+                            {
+                                var arraysByTag = new Dictionary<string, JArray>();
+                                foreach (var masterType in qryMasterTypes)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    if (qryMasters.TryGetValue(masterType, out string tag))
+                                        arraysByTag[tag] = new JArray();
+                                }
+
+                                while (!rst.EOF)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
+                                    lblProgress.Text = "Processing " + GetMasterTypeTag(masterType) + "...";
+                                    Application.DoEvents();
+                                    string name = rst.Fields["NAME"].Value?.ToString();
+
+                                    if (qryMasters.TryGetValue(masterType, out string tag) && arraysByTag.ContainsKey(tag))
+                                    {
+                                        var obj = new JObject { ["name"] = name };
+                                        arraysByTag[tag].Add(obj);
+                                    }
+
+                                    processedMasters = processedMasters + 1;
+                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
+                                    Application.DoEvents();
+
+                                    rst.MoveNext();
+                                }
+
+                                rst.Close();
+
+                                foreach (var kvp in arraysByTag)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    if (kvp.Value.Count > 0)
+                                        finalJson[kvp.Key] = kvp.Value;
+                                }
+                            }
+                        }
+                        //fetching all qry masters : end -------------------------------------------
+
+
+
+
+                        //fetching all xml masters : start -------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkContact.Checked)
+                        {
+                            lblProgress.Text = "Fetching " + GetMasterTypeTag(g_CL.CONTACT_MAST) + "...";
+                            Application.DoEvents();
+
+                            query = "select code from master1 where mastertype in (" + g_CL.CONTACT_MAST + ")";
+                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
+                            {
+                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                            }
+
+                            rst = FI.GetRecordset(query);
+
+                            if (rst != null)
+                            {
+                                var contacts = new JArray();
+
+                                while (!rst.EOF)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    var code = rst.Fields["CODE"].Value;
+                                    string xmlStr = FI.GetMasterXML(code);
+
+                                    if (!string.IsNullOrWhiteSpace(xmlStr))
+                                    {
+                                        try
+                                        {
+                                            XmlDocument doc = new XmlDocument();
+                                            doc.LoadXml(xmlStr);
+
+                                            string jsonText = JsonConvert.SerializeXmlNode(doc.DocumentElement, Newtonsoft.Json.Formatting.None, true);
+                                            JObject contactObj = JObject.Parse(jsonText);
+
+                                            contacts.Add(contactObj);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            // Optionally handle or log XML/JSON conversion errors
+                                        }
+                                    }
+
+                                    processedMasters = processedMasters + 1;
+                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
+                                    Application.DoEvents();
+
+                                    rst.MoveNext();
+                                }
+
+                                rst.Close();
+
+                                if (contacts.Count > 0)
+                                    finalJson[GetMasterTypeTag(g_CL.CONTACT_MAST)] = contacts;
+                            }
+                        }
+                        //fetching all xml masters : end -------------------------------------------
+
+                    }
+                }
+                else
+                {
+
+                    if (proceed)
+                    {
+                        //-------------------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkTallyLedger.Checked)
+                        {
+                            lblProgress.Text = "Fetching ledgers...";
+                            Application.DoEvents();
+                            outputJson = await GetTallyMasterXML(g_CL.ACC_MAST);
+                            if (!string.IsNullOrEmpty(outputJson))
+                            {
+                                JObject ledgerObj = JObject.Parse(outputJson);
+                                JToken ledgers = ledgerObj["ledgers"];
+                                if (ledgers != null)
+                                    finalJson["ledgers"] = ledgers;
+                            }
+                        }
+                        //-------------------------------------------------------
+
+                        //-------------------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkTallyGroup.Checked)
+                        {
+                            lblProgress.Text = "Fetching groups...";
+                            Application.DoEvents();
+                            outputJson = await GetTallyMasterXML(g_CL.AGRP_MAST);
+                            if (!string.IsNullOrEmpty(outputJson))
+                            {
+                                JObject ledgerObj = JObject.Parse(outputJson);
+                                JToken ledgers = ledgerObj["groups"];
+                                if (ledgers != null)
+                                    finalJson["groups"] = ledgers;
+                            }
+                        }
+                        //-------------------------------------------------------
+
+                        //-------------------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkTallyStockItem.Checked)
+                        {
+                            lblProgress.Text = "Fetching stockitems...";
+                            Application.DoEvents();
+                            outputJson = await GetTallyMasterXML(g_CL.ITEM_MAST);
+                            if (!string.IsNullOrEmpty(outputJson))
+                            {
+                                JObject ledgerObj = JObject.Parse(outputJson);
+                                JToken ledgers = ledgerObj["stockitems"];
+                                if (ledgers != null)
+                                    finalJson["stockItems"] = ledgers;
+                            }
+                        }
+                        //-------------------------------------------------------
+
+                        //-------------------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkTallyStockGroup.Checked)
+                        {
+                            lblProgress.Text = "Fetching stockgroups...";
+                            Application.DoEvents();
+                            outputJson = await GetTallyMasterXML(g_CL.IGRP_MAST);
+                            if (!string.IsNullOrEmpty(outputJson))
+                            {
+                                JObject ledgerObj = JObject.Parse(outputJson);
+                                JToken ledgers = ledgerObj["stockgroups"];
+                                if (ledgers != null)
+                                    finalJson["stockGroups"] = ledgers;
+                            }
+                        }
+                        //-------------------------------------------------------
+
+
+                        //-------------------------------------------------------
+                        token.ThrowIfCancellationRequested();
+                        if (chkTallyUnit.Checked)
+                        {
+                            lblProgress.Text = "Fetching units...";
+                            Application.DoEvents();
+                            outputJson = await GetTallyMasterXML(g_CL.UNIT_MAST);
+                            if (!string.IsNullOrEmpty(outputJson))
+                            {
+                                JObject ledgerObj = JObject.Parse(outputJson);
+                                JToken ledgers = ledgerObj["units"];
+                                if (ledgers != null)
+                                    finalJson["units"] = ledgers;
+                            }
+                        }
+                        //-------------------------------------------------------
+
+                    }
+
+                }
+
+
+
+                //converting data to json: start------------------------
+                token.ThrowIfCancellationRequested();
+                if (proceed)
+                {
+                    if (finalJson.HasValues)
+                    {
+                        lblProgress.Text = "Doing final processing on data...";
+                        lblProgress2.Text = "";
+                        Application.DoEvents();
+                        outputJson = finalJson.ToString(Newtonsoft.Json.Formatting.None);
+                    }
+                    else
+                    {
+                        proceed = false;
+                        errMsg = "No data found to sync.";
+                    }
+                }
+                //converting data to json: end------------------------
+
+
+
+                //call crm api and transfer data------------------------
+                token.ThrowIfCancellationRequested();
+                if (proceed)
+                {
+                    lblProgress.Text = "Sending data to CRM...";
+                    Application.DoEvents();
+
+                    System.IO.File.WriteAllText(jsonFilePath, outputJson);
+
+                    try
+                    {
+                        using (var client = new System.Net.Http.HttpClient())
+                        using (var form = new System.Net.Http.MultipartFormDataContent())
+                        using (var fileStream = System.IO.File.OpenRead(jsonFilePath))
+                        {
+                            client.DefaultRequestHeaders.Add("X-Source-Software", "Busy");
+
+                            var userIdContent = new System.Net.Http.StringContent(m_UserId.ToString());
+                            userIdContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                            {
+                                Name = "\"user_id\""
+                            };
+                            form.Add(userIdContent);
+
+                            var companyIdContent = new System.Net.Http.StringContent(m_CompanyId.ToString());
+                            companyIdContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                            {
+                                Name = "\"company_id\""
+                            };
+                            form.Add(companyIdContent);
+
+                            var fileContent = new System.Net.Http.StreamContent(fileStream);
+                            fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                            {
+                                Name = "\"file\"",
+                                FileName = $"\"{System.IO.Path.GetFileName(jsonFilePath)}\""
+                            };
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+                            form.Add(fileContent);
+
+                            string apiUrl = ReadSetDataAPIURLFromTextFile();
+
+                            var response = client.PostAsync(apiUrl, form).Result;
+                            string responseBody = response.Content.ReadAsStringAsync().Result;
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
+
+                                bool status = jsonObj.Value<bool>("status");
+                                string message = jsonObj.Value<string>("message");
+                                var data = jsonObj["data"];
+
+                                if (status)
+                                {
+                                    // Success logic
+                                }
+                                else
+                                {
+                                    proceed = false;
+                                    errMsg = message;
+                                }
+                            }
+                            else
+                            {
+                                proceed = false;
+                                errMsg = "Error occurred while transferring data.";
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        proceed = false;
+                        errMsg = ex.Message;
+                    }
+
+                    System.IO.File.Delete(jsonFilePath);
+                }
+                //call crm api and transfer data------------------------
+
+
+
+                //------------------------------------------------------
+                if (proceed)
+                {
+                    m_lastSyncDate = DateTime.Now;
+                    MessageBox.Show("Data transfer completed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(errMsg))
+                    {
+                        MessageBox.Show(errMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                //-------------------------------------------------------
+
+            }
+            catch (Exception ex)
+            {
+                string fullMessage = ex.Message;
+                Exception inner = ex.InnerException;
+                while (inner != null)
+                {
+                    fullMessage += "\nInner Exception: " + inner.Message;
+                    inner = inner.InnerException;
+                }
+                MessageBox.Show(fullMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                lblProgress.Text = "";
+                lblProgress2.Text = "";
+                if (rbBusy.Checked) FI.CloseDB();
+                SetAllControlsEnabled(this, true);
+                btnStop.Enabled = false;
+                Cursor.Current = Cursors.Default;
+
+            }
+
         }
     }
 }

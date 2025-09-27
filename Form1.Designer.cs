@@ -71,7 +71,6 @@
             this.btnBrowseDataPath = new System.Windows.Forms.Button();
             this.txtDataPath = new System.Windows.Forms.TextBox();
             this.txtAppPath = new System.Windows.Forms.TextBox();
-            this.btnStart = new System.Windows.Forms.Button();
             this.gbBusyMasters = new System.Windows.Forms.GroupBox();
             this.chkContactDepartment = new System.Windows.Forms.CheckBox();
             this.chkState = new System.Windows.Forms.CheckBox();
@@ -97,6 +96,9 @@
             this.chkTallyStockGroup = new System.Windows.Forms.CheckBox();
             this.chkTallyStockItem = new System.Windows.Forms.CheckBox();
             this.chkTallyLedger = new System.Windows.Forms.CheckBox();
+            this.lblProgress2 = new System.Windows.Forms.Label();
+            this.btnStart = new System.Windows.Forms.Button();
+            this.btnStop = new System.Windows.Forms.Button();
             this.gbTally.SuspendLayout();
             this.gbCRM.SuspendLayout();
             this.gbProduct.SuspendLayout();
@@ -115,7 +117,7 @@
             this.gbTally.Controls.Add(this.lblTallyPort);
             this.gbTally.Controls.Add(this.txtTallyPort);
             this.gbTally.Controls.Add(this.txtTallyServer);
-            this.gbTally.Location = new System.Drawing.Point(602, 194);
+            this.gbTally.Location = new System.Drawing.Point(1216, 146);
             this.gbTally.Name = "gbTally";
             this.gbTally.Size = new System.Drawing.Size(608, 406);
             this.gbTally.TabIndex = 63;
@@ -542,16 +544,6 @@
             this.txtAppPath.Size = new System.Drawing.Size(344, 26);
             this.txtAppPath.TabIndex = 58;
             // 
-            // btnStart
-            // 
-            this.btnStart.Location = new System.Drawing.Point(930, 567);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(282, 70);
-            this.btnStart.TabIndex = 80;
-            this.btnStart.Text = "Start Data Transfer";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
             // gbBusyMasters
             // 
             this.gbBusyMasters.Controls.Add(this.chkContactDepartment);
@@ -735,9 +727,9 @@
             // 
             this.gbDataTransferType.Controls.Add(this.rbIncremental);
             this.gbDataTransferType.Controls.Add(this.rbBulk);
-            this.gbDataTransferType.Location = new System.Drawing.Point(18, 567);
+            this.gbDataTransferType.Location = new System.Drawing.Point(18, 568);
             this.gbDataTransferType.Name = "gbDataTransferType";
-            this.gbDataTransferType.Size = new System.Drawing.Size(292, 70);
+            this.gbDataTransferType.Size = new System.Drawing.Size(264, 70);
             this.gbDataTransferType.TabIndex = 86;
             this.gbDataTransferType.TabStop = false;
             this.gbDataTransferType.Text = "Data Transfer Type";
@@ -768,9 +760,9 @@
             // 
             this.lblProgress.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
             this.lblProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProgress.Location = new System.Drawing.Point(316, 567);
+            this.lblProgress.Location = new System.Drawing.Point(298, 568);
             this.lblProgress.Name = "lblProgress";
-            this.lblProgress.Size = new System.Drawing.Size(607, 70);
+            this.lblProgress.Size = new System.Drawing.Size(574, 25);
             this.lblProgress.TabIndex = 87;
             this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -781,7 +773,7 @@
             this.gbTallyMasters.Controls.Add(this.chkTallyStockGroup);
             this.gbTallyMasters.Controls.Add(this.chkTallyStockItem);
             this.gbTallyMasters.Controls.Add(this.chkTallyLedger);
-            this.gbTallyMasters.Location = new System.Drawing.Point(258, 657);
+            this.gbTallyMasters.Location = new System.Drawing.Point(1216, 560);
             this.gbTallyMasters.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gbTallyMasters.Name = "gbTallyMasters";
             this.gbTallyMasters.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -846,14 +838,46 @@
             this.chkTallyLedger.Text = "Ledger";
             this.chkTallyLedger.UseVisualStyleBackColor = true;
             // 
+            // lblProgress2
+            // 
+            this.lblProgress2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
+            this.lblProgress2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblProgress2.Location = new System.Drawing.Point(298, 606);
+            this.lblProgress2.Name = "lblProgress2";
+            this.lblProgress2.Size = new System.Drawing.Size(574, 25);
+            this.lblProgress2.TabIndex = 89;
+            this.lblProgress2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // btnStart
+            // 
+            this.btnStart.Location = new System.Drawing.Point(884, 568);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(160, 54);
+            this.btnStart.TabIndex = 92;
+            this.btnStart.Text = "Start Data Transfer";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            // 
+            // btnStop
+            // 
+            this.btnStop.Location = new System.Drawing.Point(1050, 568);
+            this.btnStop.Name = "btnStop";
+            this.btnStop.Size = new System.Drawing.Size(159, 54);
+            this.btnStop.TabIndex = 93;
+            this.btnStop.Text = "Stop";
+            this.btnStop.UseVisualStyleBackColor = true;
+            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1231, 655);
+            this.ClientSize = new System.Drawing.Size(1227, 650);
+            this.Controls.Add(this.btnStop);
+            this.Controls.Add(this.btnStart);
+            this.Controls.Add(this.lblProgress2);
             this.Controls.Add(this.gbTallyMasters);
             this.Controls.Add(this.lblProgress);
-            this.Controls.Add(this.btnStart);
             this.Controls.Add(this.gbDataTransferType);
             this.Controls.Add(this.gbBusy);
             this.Controls.Add(this.gbTally);
@@ -924,7 +948,6 @@
         private System.Windows.Forms.Label lblCRM;
         private System.Windows.Forms.CheckBox chkCRMPass;
         private System.Windows.Forms.CheckBox chkBusyPass;
-        private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnLoadCompanies;
         private System.Windows.Forms.Label lblTallyServer;
         private System.Windows.Forms.Label lblTallyPort;
@@ -956,6 +979,9 @@
         private System.Windows.Forms.CheckBox chkTallyStockGroup;
         private System.Windows.Forms.CheckBox chkTallyStockItem;
         private System.Windows.Forms.CheckBox chkTallyLedger;
+        private System.Windows.Forms.Label lblProgress2;
+        private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Button btnStop;
     }
 }
 
