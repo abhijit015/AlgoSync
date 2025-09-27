@@ -439,7 +439,6 @@ namespace AlgoSync
         bool ValidateDataB4StartingProcess(ref string p_ErrMsg)
         {
             bool proceed = true;
-            int finYear = Convert.ToInt16(cbFinYr.Text);
 
             if (rbBusy.Checked)
             {
@@ -540,41 +539,6 @@ namespace AlgoSync
                     proceed = false;
                 }
             }
-
-
-            if (proceed)
-            {
-                Cursor.Current = Cursors.WaitCursor;
-                g_CL.SetAllControlsEnabled(this, false);
-                lblProgress.Enabled = true;
-                lblProgress2.Enabled = true;
-                btnStop.Enabled = true;
-                Application.DoEvents();
-
-
-                lblProgress.Text = "Establishing connection...";
-                if (rbBusy.Checked)
-                {
-                    if (rbAccess.Checked)
-                    {
-                        proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
-                    }
-                    else
-                    {
-                        proceed = FI.OpenCSDBForYear(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
-                    }
-
-                    if (!proceed)
-                    {
-                        p_ErrMsg = "Failed to connect to Busy database. Please check the details and try again.";
-                    }
-                }
-                else
-                {
-                    //tally
-                }
-            }
-
 
             return proceed;
         }
@@ -893,7 +857,7 @@ namespace AlgoSync
 
         async Task RunMainProcessAsync(CancellationToken token)
         {
-
+            int finYear = Convert.ToInt16(cbFinYr.Text);
             bool proceed = true;
             string errMsg = "";
             Dictionary<int, List<object>> codesByMasterType = new Dictionary<int, List<object>>();
@@ -915,6 +879,40 @@ namespace AlgoSync
                 {
                     proceed = ValidateDataB4StartingProcess(ref errMsg);
                     token.ThrowIfCancellationRequested();
+                }
+
+
+                if (proceed)
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+                    g_CL.SetAllControlsEnabled(this, false);
+                    lblProgress.Enabled = true;
+                    lblProgress2.Enabled = true;
+                    btnStop.Enabled = true;
+                    Application.DoEvents();
+
+
+                    lblProgress.Text = "Establishing connection...";
+                    if (rbBusy.Checked)
+                    {
+                        if (rbAccess.Checked)
+                        {
+                            proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
+                        }
+                        else
+                        {
+                            proceed = FI.OpenCSDBForYear(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
+                        }
+
+                        if (!proceed)
+                        {
+                            errMsg = "Failed to connect to Busy database. Please check the details and try again.";
+                        }
+                    }
+                    else
+                    {
+                        //tally
+                    }
                 }
 
 
