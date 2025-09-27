@@ -159,10 +159,10 @@ namespace AlgoSync
             }
 
             if (string.IsNullOrWhiteSpace(txtAppPath.Text))
-                txtAppPath.Text = DetectBusyPath();
+                txtAppPath.Text = g_CL.DetectBusyPath();
 
             if (string.IsNullOrWhiteSpace(txtDataPath.Text))
-                txtDataPath.Text = GetBusyDataPath(txtAppPath.Text);
+                txtDataPath.Text = g_CL.GetBusyDataPath(txtAppPath.Text);
 
             if (string.IsNullOrWhiteSpace(txtTallyServer.Text))
                 txtTallyServer.Text = "localhost";
@@ -370,7 +370,7 @@ namespace AlgoSync
                     lastFinYear = item.ToString();
                 }
 
-                FindComboIndex(cbFinYr, lastFinYear);
+                g_CL.FindComboIndex(cbFinYr, lastFinYear);
             }
         }
 
@@ -527,7 +527,7 @@ namespace AlgoSync
             if (proceed)
             {
                 Cursor.Current = Cursors.WaitCursor;
-                SetAllControlsEnabled(this, false);
+                g_CL.SetAllControlsEnabled(this, false);
                 lblProgress.Enabled = true;
                 lblProgress2.Enabled = true;
                 btnStop.Enabled = true;
@@ -561,19 +561,6 @@ namespace AlgoSync
             return proceed;
         }
 
-
-        private void SetAllControlsEnabled(Control parent, bool enabled)
-        {
-            foreach (Control c in parent.Controls)
-            {
-                c.Enabled = enabled;
-                if (c.HasChildren)
-                {
-                    SetAllControlsEnabled(c, enabled);
-                }
-            }
-        }
-
         private void VerifyCRMCreds()
         {
             bool proceed = true;
@@ -596,7 +583,7 @@ namespace AlgoSync
             {
                 try
                 {
-                    string apiUrl = ReadVerifyAPIURLFromTextFile();
+                    string apiUrl = g_CL.ReadVerifyAPIURLFromTextFile();
                     var payload = new
                     {
                         contact = txtCRMUsername.Text.Trim(),
@@ -678,7 +665,7 @@ namespace AlgoSync
 
         void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            DisposeObjectsInEnd();
+            g_CL.DisposeObjectsInEnd();
 
             var lines = new List<string>
             {
@@ -738,43 +725,6 @@ namespace AlgoSync
             }
         }
 
-        string GetTallyPayLoad(DateTime p_FromDate, DateTime p_ToDate, DateTime p_CurrDate)
-        {
-            string payLoad = "";
-            payLoad += "<ENVELOPE>";
-            payLoad += "<HEADER>";
-            payLoad += "<VERSION> 1 </VERSION> ";
-            payLoad += "<TALLYREQUEST> Export </TALLYREQUEST>";
-            payLoad += "<TYPE> Data </TYPE>";
-            payLoad += "<ID> Day Book </ID>";
-            payLoad += "</HEADER>";
-            payLoad += "<BODY>";
-            payLoad += "<DESC>";
-            payLoad += "<STATICVARIABLES>";
-            payLoad += "<SVEXPORTFORMAT>$$SysName: XML </SVEXPORTFORMAT>";
-            payLoad += "<SVFROMDATE >" + p_FromDate.ToString("yyyyMMdd") + "</SVFROMDATE>";
-            payLoad += "<SVTODATE >" + p_ToDate.ToString("yyyyMMdd") + "</ SVTODATE >";
-            payLoad += "<SVCURRENTDATE >" + p_CurrDate.ToString("yyyyMMdd") + "</SVCURRENTDATE>";
-            payLoad += "</STATICVARIABLES >";
-            payLoad += "</DESC >";
-            payLoad += "</BODY >";
-            payLoad += "</ENVELOPE>";
-
-            return payLoad;
-        }
-
-
-        string GetTallyMasterPayload(string p_Master)
-        {
-            string xmlPayload = "<ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Collection</TYPE><ID>All Masters</ID></HEADER>";
-            xmlPayload += "<BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT></STATICVARIABLES>";
-            xmlPayload += "<TDL><TDLMESSAGE><COLLECTION NAME=\"All Masters\" ISMODIFY=\"No\"><TYPE>" + p_Master + "</TYPE><FETCH>*.*</FETCH></COLLECTION></TDLMESSAGE></TDL>";
-            xmlPayload += "</DESC></BODY></ENVELOPE>";
-
-            return xmlPayload;
-        }
-
-
 
         async Task<string> GetTallyMasterXML(int p_Mastertype)
         {
@@ -797,14 +747,14 @@ namespace AlgoSync
             string mastername = masterInfo.masterName;
             string tagName = masterInfo.tagName;
 
-            string xmlPayload = GetTallyMasterPayload(mastername);
-            string responseBody = await GetTallyResponseAsync(TallyServer, xmlPayload, myErrStr);
+            string xmlPayload = g_CL.GetTallyMasterPayload(mastername);
+            string responseBody = await g_CL.GetTallyResponseAsync(TallyServer, xmlPayload, myErrStr);
 
             if (!string.IsNullOrEmpty(responseBody))
             {
-                responseBody = RemoveJunkChars(responseBody, 1);
-                responseBody = RemoveJunkChars(responseBody, 2);
-                responseBody = RemoveJunkChars(responseBody, 3);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 1);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 2);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 3);
 
                 try
                 {
@@ -840,15 +790,15 @@ namespace AlgoSync
         async Task<string> GetTallyCurrentCompName()
         {
             string TallyServer = txtTallyServer.Text.Trim() + ":" + txtTallyPort.Text.Trim();
-            string xmlPayload = GetTallyPayLoad(DateTime.Today, DateTime.Today, DateTime.Today);
+            string xmlPayload = g_CL.GetTallyPayLoad(DateTime.Today, DateTime.Today, DateTime.Today);
             string myErrStr = "";
 
-            string responseBody = await GetTallyResponseAsync(TallyServer, xmlPayload, myErrStr);
+            string responseBody = await g_CL.GetTallyResponseAsync(TallyServer, xmlPayload, myErrStr);
             if (!string.IsNullOrEmpty(responseBody))
             {
-                responseBody = RemoveJunkChars(responseBody, 1);
-                responseBody = RemoveJunkChars(responseBody, 2);
-                responseBody = RemoveJunkChars(responseBody, 3);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 1);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 2);
+                responseBody = g_CL.RemoveJunkChars(responseBody, 3);
 
                 try
                 {
@@ -882,220 +832,7 @@ namespace AlgoSync
         }
 
 
-        string GetQryStr(string p_Str)
-        {
-            return "'" + p_Str.Replace("'", "''").ToString() + "'";
-        }
 
-        string GetDateQryStr(DateTime p_Date)
-        {
-            return "'" + p_Date.ToString("yyyy-MM-dd") + "'";
-        }
-
-        string GetBusyDataPath(string p_BusyPath)
-        {
-            string filename = "DP.txt";
-            string filePath = System.IO.Path.Combine(p_BusyPath, "SYSTEM", filename);
-            string tempStr = "";
-
-            if (System.IO.File.Exists(filePath))
-            {
-                tempStr = System.IO.File.ReadAllText(filePath);
-            }
-
-            return tempStr.Trim();
-        }
-
-        string DetectBusyPath()
-        {
-            string busyPath = "";
-            for (int i = 3; i <= 26; i++)
-            {
-                string driveChar = ((char)(64 + i)).ToString();
-                if (System.IO.Directory.Exists(driveChar + @":\BusyWin\"))
-                {
-                    busyPath = driveChar + @":\BusyWin\";
-                    break;
-                }
-            }
-            return busyPath;
-        }
-
-
-        void FindComboIndex(ComboBox p_Combo, string p_Str)
-        {
-            for (int i = 0; i < p_Combo.Items.Count; i++)
-            {
-                if (string.Compare(p_Combo.Items[i].ToString(), p_Str, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    p_Combo.SelectedIndex = i;
-                    break;
-                }
-            }
-        }
-
-        async Task<string> GetTallyResponseAsync(string p_TallyServer, string p_Payload, string p_ErrStr)
-        {
-            string apiUrl = "http://" + p_TallyServer;
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Add("cache-control", "no-cache");
-                HttpContent content = new StringContent(p_Payload, System.Text.Encoding.UTF8, "application/xml");
-                httpClient.Timeout = TimeSpan.FromSeconds(2400);
-
-                try
-                {
-                    HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        using (Stream responseStream = await response.Content.ReadAsStreamAsync())
-                        using (StreamReader sr = new StreamReader(responseStream))
-                        {
-                            char[] buffer = new char[8192];
-                            StringBuilder stringBuilder = new StringBuilder();
-                            int bytesRead;
-                            do
-                            {
-                                bytesRead = await sr.ReadAsync(buffer, 0, buffer.Length);
-                                if (bytesRead > 0)
-                                {
-                                    stringBuilder.Append(buffer, 0, bytesRead);
-                                }
-                            } while (bytesRead > 0);
-
-                            return stringBuilder.ToString();
-                        }
-                    }
-                    else
-                    {
-                        p_ErrStr = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
-                        return "";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    p_ErrStr = $"Exception: {ex.Message}";
-                    return "";
-                }
-            }
-        }
-
-
-        string RemoveJunkChars(string p_TallyXML, int p_PartNo)
-        {
-            if (p_PartNo == 1)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, "&#4;", " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, "&quot;", "");
-                p_TallyXML = ReplaceStr(p_TallyXML, "&#13;", "");
-            }
-            else if (p_PartNo == 2)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, "&#10;", " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, "\\u0002", " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)9).ToString(), " ");
-            }
-            else if (p_PartNo == 3)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)2).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)3).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)5).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)26).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, "UDF:", "UDF-");
-            }
-            else if (p_PartNo == 4)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, "&amp;", "And");
-            }
-            else if (p_PartNo == 5)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)1).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)4).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)6).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)7).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)8).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)11).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)12).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)14).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)15).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)16).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)17).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)18).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)19).ToString(), " ");
-                p_TallyXML = ReplaceStr(p_TallyXML, ((char)20).ToString(), " ");
-            }
-            else if (p_PartNo == 6)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, "&", "&amp;");
-            }
-            else if (p_PartNo == 7)
-            {
-                p_TallyXML = ReplaceStr(p_TallyXML, "<", "(");
-                p_TallyXML = ReplaceStr(p_TallyXML, ">", ")");
-            }
-            return p_TallyXML;
-        }
-
-        string ReplaceStr(string p_Payload, string p_FindStr, string p_ReplaceStr)
-        {
-            try
-            {
-                string myStr = p_Payload.Replace(p_FindStr, p_ReplaceStr);
-                return myStr;
-            }
-            catch
-            {
-                return p_Payload;
-            }
-        }
-
-        void DisposeObjectsInEnd()
-        {
-
-            if (FI != null)
-            {
-                FI.CloseDB();
-                Marshal.ReleaseComObject(FI);
-                FI = null;
-            }
-
-            if (FI1 != null)
-            {
-                Marshal.ReleaseComObject(FI1);
-                FI1 = null;
-            }
-
-        }
-
-        string ReadVerifyAPIURLFromTextFile()
-        {
-            string fileName = "verifyCompanyUrl.txt";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            string retval = "";
-
-
-            if (File.Exists(filePath))
-            {
-                retval = File.ReadAllText(filePath);
-            }
-
-            return retval;
-        }
-
-        string ReadSetDataAPIURLFromTextFile()
-        {
-            string fileName = "setDataUrl.txt";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            string retval = "";
-
-
-            if (File.Exists(filePath))
-            {
-                retval = File.ReadAllText(filePath);
-            }
-
-            return retval;
-        }
 
         private void txtCRMUsername_TextChanged(object sender, EventArgs e)
         {
@@ -1180,7 +917,7 @@ namespace AlgoSync
                         query = "SELECT COUNT(code) FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
-                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                            query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                         }
 
                         rst = FI.GetRecordset(query);
@@ -1204,7 +941,7 @@ namespace AlgoSync
                         query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ") order by mastertype";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
-                            query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                            query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                         }
 
                         rst = FI.GetRecordset(query);
@@ -1286,7 +1023,7 @@ namespace AlgoSync
                             query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ") order by mastertype";
                             if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                             {
-                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                                query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                             }
 
                             rst = FI.GetRecordset(query);
@@ -1347,7 +1084,7 @@ namespace AlgoSync
                             query = "select code from master1 where mastertype in (" + g_CL.CONTACT_MAST + ")";
                             if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                             {
-                                query += " AND CREATIONTIME >= " + GetDateQryStr(m_lastSyncDate.Value);
+                                query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                             }
 
                             rst = FI.GetRecordset(query);
@@ -1555,7 +1292,7 @@ namespace AlgoSync
                             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                             form.Add(fileContent);
 
-                            string apiUrl = ReadSetDataAPIURLFromTextFile();
+                            string apiUrl = g_CL.ReadSetDataAPIURLFromTextFile();
 
                             var response = client.PostAsync(apiUrl, form).Result;
                             string responseBody = response.Content.ReadAsStringAsync().Result;
@@ -1629,7 +1366,7 @@ namespace AlgoSync
                 lblProgress.Text = "";
                 lblProgress2.Text = "";
                 if (rbBusy.Checked) FI.CloseDB();
-                SetAllControlsEnabled(this, true);
+                g_CL.SetAllControlsEnabled(this, true);
                 btnStop.Enabled = false;
                 Cursor.Current = Cursors.Default;
 

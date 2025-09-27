@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace AlgoSync
 {
@@ -67,5 +71,264 @@ namespace AlgoSync
         public const int NMCATEGORY_MAST = 101;
         public const int FAQ_GRP_ENQUIRY_MAST = 102;
         public const int FAQ_GRP_SUPPORT_MAST = 103;
+
+        public static string GetQryStr(string p_Str)
+        {
+            return "'" + p_Str.Replace("'", "''").ToString() + "'";
+        }
+
+        public static string GetDateQryStr(DateTime p_Date)
+        {
+            return "'" + p_Date.ToString("yyyy-MM-dd") + "'";
+        }
+
+        public static string GetBusyDataPath(string p_BusyPath)
+        {
+            string filename = "DP.txt";
+            string filePath = System.IO.Path.Combine(p_BusyPath, "SYSTEM", filename);
+            string tempStr = "";
+
+            if (System.IO.File.Exists(filePath))
+            {
+                tempStr = System.IO.File.ReadAllText(filePath);
+            }
+
+            return tempStr.Trim();
+        }
+
+        public static string DetectBusyPath()
+        {
+            string busyPath = "";
+            for (int i = 3; i <= 26; i++)
+            {
+                string driveChar = ((char)(64 + i)).ToString();
+                if (System.IO.Directory.Exists(driveChar + @":\BusyWin\"))
+                {
+                    busyPath = driveChar + @":\BusyWin\";
+                    break;
+                }
+            }
+            return busyPath;
+        }
+
+        public static string GetTallyPayLoad(DateTime p_FromDate, DateTime p_ToDate, DateTime p_CurrDate)
+        {
+            string payLoad = "";
+            payLoad += "<ENVELOPE>";
+            payLoad += "<HEADER>";
+            payLoad += "<VERSION> 1 </VERSION> ";
+            payLoad += "<TALLYREQUEST> Export </TALLYREQUEST>";
+            payLoad += "<TYPE> Data </TYPE>";
+            payLoad += "<ID> Day Book </ID>";
+            payLoad += "</HEADER>";
+            payLoad += "<BODY>";
+            payLoad += "<DESC>";
+            payLoad += "<STATICVARIABLES>";
+            payLoad += "<SVEXPORTFORMAT>$$SysName: XML </SVEXPORTFORMAT>";
+            payLoad += "<SVFROMDATE >" + p_FromDate.ToString("yyyyMMdd") + "</SVFROMDATE>";
+            payLoad += "<SVTODATE >" + p_ToDate.ToString("yyyyMMdd") + "</ SVTODATE >";
+            payLoad += "<SVCURRENTDATE >" + p_CurrDate.ToString("yyyyMMdd") + "</SVCURRENTDATE>";
+            payLoad += "</STATICVARIABLES >";
+            payLoad += "</DESC >";
+            payLoad += "</BODY >";
+            payLoad += "</ENVELOPE>";
+
+            return payLoad;
+        }
+
+        public static string RemoveJunkChars(string p_TallyXML, int p_PartNo)
+        {
+            if (p_PartNo == 1)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, "&#4;", " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, "&quot;", "");
+                p_TallyXML = ReplaceStr(p_TallyXML, "&#13;", "");
+            }
+            else if (p_PartNo == 2)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, "&#10;", " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, "\\u0002", " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)9).ToString(), " ");
+            }
+            else if (p_PartNo == 3)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)2).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)3).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)5).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)26).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, "UDF:", "UDF-");
+            }
+            else if (p_PartNo == 4)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, "&amp;", "And");
+            }
+            else if (p_PartNo == 5)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)1).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)4).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)6).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)7).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)8).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)11).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)12).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)14).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)15).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)16).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)17).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)18).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)19).ToString(), " ");
+                p_TallyXML = ReplaceStr(p_TallyXML, ((char)20).ToString(), " ");
+            }
+            else if (p_PartNo == 6)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, "&", "&amp;");
+            }
+            else if (p_PartNo == 7)
+            {
+                p_TallyXML = ReplaceStr(p_TallyXML, "<", "(");
+                p_TallyXML = ReplaceStr(p_TallyXML, ">", ")");
+            }
+            return p_TallyXML;
+        }
+
+        public static string ReplaceStr(string p_Payload, string p_FindStr, string p_ReplaceStr)
+        {
+            try
+            {
+                string myStr = p_Payload.Replace(p_FindStr, p_ReplaceStr);
+                return myStr;
+            }
+            catch
+            {
+                return p_Payload;
+            }
+        }
+
+        public static void DisposeObjectsInEnd()
+        {
+
+            if (FI != null)
+            {
+                FI.CloseDB();
+                Marshal.ReleaseComObject(FI);
+                FI = null;
+            }
+
+            if (FI1 != null)
+            {
+                Marshal.ReleaseComObject(FI1);
+                FI1 = null;
+            }
+
+        }
+
+        public static string ReadVerifyAPIURLFromTextFile()
+        {
+            string fileName = "verifyCompanyUrl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string retval = "";
+
+
+            if (File.Exists(filePath))
+            {
+                retval = File.ReadAllText(filePath);
+            }
+
+            return retval;
+        }
+
+        public static string ReadSetDataAPIURLFromTextFile()
+        {
+            string fileName = "setDataUrl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string retval = "";
+
+
+            if (File.Exists(filePath))
+            {
+                retval = File.ReadAllText(filePath);
+            }
+
+            return retval;
+        }
+
+        public static async Task<string> GetTallyResponseAsync(string p_TallyServer, string p_Payload, string p_ErrStr)
+        {
+            string apiUrl = "http://" + p_TallyServer;
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Add("cache-control", "no-cache");
+                HttpContent content = new StringContent(p_Payload, System.Text.Encoding.UTF8, "application/xml");
+                httpClient.Timeout = TimeSpan.FromSeconds(2400);
+
+                try
+                {
+                    HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using (Stream responseStream = await response.Content.ReadAsStreamAsync())
+                        using (StreamReader sr = new StreamReader(responseStream))
+                        {
+                            char[] buffer = new char[8192];
+                            StringBuilder stringBuilder = new StringBuilder();
+                            int bytesRead;
+                            do
+                            {
+                                bytesRead = await sr.ReadAsync(buffer, 0, buffer.Length);
+                                if (bytesRead > 0)
+                                {
+                                    stringBuilder.Append(buffer, 0, bytesRead);
+                                }
+                            } while (bytesRead > 0);
+
+                            return stringBuilder.ToString();
+                        }
+                    }
+                    else
+                    {
+                        p_ErrStr = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+                        return "";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    p_ErrStr = $"Exception: {ex.Message}";
+                    return "";
+                }
+            }
+        }
+
+        public static string GetTallyMasterPayload(string p_Master)
+        {
+            string xmlPayload = "<ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Collection</TYPE><ID>All Masters</ID></HEADER>";
+            xmlPayload += "<BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT></STATICVARIABLES>";
+            xmlPayload += "<TDL><TDLMESSAGE><COLLECTION NAME=\"All Masters\" ISMODIFY=\"No\"><TYPE>" + p_Master + "</TYPE><FETCH>*.*</FETCH></COLLECTION></TDLMESSAGE></TDL>";
+            xmlPayload += "</DESC></BODY></ENVELOPE>";
+
+            return xmlPayload;
+        }
+
+        public static void SetAllControlsEnabled(Control parent, bool enabled)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                c.Enabled = enabled;
+                if (c.HasChildren)
+                {
+                    SetAllControlsEnabled(c, enabled);
+                }
+            }
+        }
+        public static void FindComboIndex(ComboBox p_Combo, string p_Str)
+        {
+            for (int i = 0; i < p_Combo.Items.Count; i++)
+            {
+                if (string.Compare(p_Combo.Items[i].ToString(), p_Str, StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    p_Combo.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
     }
 }
