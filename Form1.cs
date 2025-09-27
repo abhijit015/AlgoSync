@@ -1285,7 +1285,7 @@ namespace AlgoSync
                         using (var form = new System.Net.Http.MultipartFormDataContent())
                         using (var fileStream = System.IO.File.OpenRead(jsonFilePath))
                         {
-                            client.DefaultRequestHeaders.Add("X-Source-Software", "Busy");
+                            client.DefaultRequestHeaders.Add("X-Source-Software", rbBusy.Checked ? "Busy" : "Tally");
 
                             var userIdContent = new System.Net.Http.StringContent(m_UserId.ToString());
                             userIdContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
