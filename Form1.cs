@@ -42,6 +42,24 @@ namespace AlgoSync
             SetInputControls();
         }
 
+        void DisposeObjectsInEnd()
+        {
+
+            if (FI != null)
+            {
+                FI.CloseDB();
+                Marshal.ReleaseComObject(FI);
+                FI = null;
+            }
+
+            if (FI1 != null)
+            {
+                Marshal.ReleaseComObject(FI1);
+                FI1 = null;
+            }
+
+        }
+
         void SetDefaultValues()
         {
             int savedCompanyIdx = -1;
@@ -665,7 +683,7 @@ namespace AlgoSync
 
         void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            g_CL.DisposeObjectsInEnd();
+            DisposeObjectsInEnd();
 
             var lines = new List<string>
             {
@@ -1373,5 +1391,9 @@ namespace AlgoSync
             }
 
         }
+
+        
     }
+
+
 }

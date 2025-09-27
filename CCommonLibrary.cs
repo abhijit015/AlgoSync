@@ -204,23 +204,6 @@ namespace AlgoSync
             }
         }
 
-        public static void DisposeObjectsInEnd()
-        {
-
-            if (FI != null)
-            {
-                FI.CloseDB();
-                Marshal.ReleaseComObject(FI);
-                FI = null;
-            }
-
-            if (FI1 != null)
-            {
-                Marshal.ReleaseComObject(FI1);
-                FI1 = null;
-            }
-
-        }
 
         public static string ReadVerifyAPIURLFromTextFile()
         {
