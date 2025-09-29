@@ -81,10 +81,18 @@ namespace AlgoSync
             return "'" + p_Str.Replace("'", "''").ToString() + "'";
         }
 
-        public static string GetDateTimeQryStr(DateTime p_DateTime)
+        public static string GetDateTimeQryStr(DateTime p_DateTime, bool p_ForAccess)
         {
-            //return "'" + p_Date.ToString("yyyy-MM-dd") + "'";
-            return "'" + p_DateTime.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+            if (p_ForAccess)
+            {
+                // For Access: #MM/dd/yyyy HH:mm:ss#
+                return "#" + p_DateTime.ToString("MM/dd/yyyy HH:mm:ss") + "#";
+            }
+            else
+            {
+                // For SQL Server: 'yyyy-MM-dd HH:mm:ss'
+                return "'" + p_DateTime.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+            }
         }
 
         public static string GetBusyDataPath(string p_BusyPath)
