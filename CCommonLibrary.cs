@@ -72,14 +72,19 @@ namespace AlgoSync
         public const int FAQ_GRP_ENQUIRY_MAST = 102;
         public const int FAQ_GRP_SUPPORT_MAST = 103;
 
+
+        public const int AG_SUNDRY_DEBTORS = 116;
+        public const int AG_SUNDRY_CREDITORS = 117;
+
         public static string GetQryStr(string p_Str)
         {
             return "'" + p_Str.Replace("'", "''").ToString() + "'";
         }
 
-        public static string GetDateQryStr(DateTime p_Date)
+        public static string GetDateTimeQryStr(DateTime p_DateTime)
         {
-            return "'" + p_Date.ToString("yyyy-MM-dd") + "'";
+            //return "'" + p_Date.ToString("yyyy-MM-dd") + "'";
+            return "'" + p_DateTime.ToString("yyyy-MM-dd HH:mm:ss") + "'";
         }
 
         public static string GetBusyDataPath(string p_BusyPath)
