@@ -954,11 +954,12 @@ namespace AlgoSync
                             checkedMasters.Where(m => jsonMasters.ContainsKey(m))
                         );
 
-                        query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ") order by mastertype";
+                        query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
                             query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                         }
+                        query += " order by mastertype";
 
                         rst = FI.GetRecordset(query);
 
@@ -1036,11 +1037,12 @@ namespace AlgoSync
                             lblProgress.Text = "Fetching category and source masters...";
                             Application.DoEvents();
 
-                            query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ") order by mastertype";
+                            query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ")";
                             if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                             {
                                 query += " AND CREATIONTIME >= " + g_CL.GetDateQryStr(m_lastSyncDate.Value);
                             }
+                            query += " order by mastertype";
 
                             rst = FI.GetRecordset(query);
 
