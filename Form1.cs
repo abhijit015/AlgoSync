@@ -933,7 +933,7 @@ namespace AlgoSync
                         query = "SELECT COUNT(code) FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
-                            query += " AND CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked);
+                            query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
                         }
 
                         rst = FI.GetRecordset(query);
@@ -957,7 +957,7 @@ namespace AlgoSync
                         query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
-                            query += " AND CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked);
+                            query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
                         }
                         query += " order by mastertype";
 
@@ -1053,7 +1053,7 @@ namespace AlgoSync
                             query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ")";
                             if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                             {
-                                query += " AND CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked);
+                                query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
                             }
                             query += " order by mastertype";
 
@@ -1115,7 +1115,7 @@ namespace AlgoSync
                             query = "select code from master1 where mastertype in (" + g_CL.CONTACT_MAST + ")";
                             if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                             {
-                                query += " AND CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked);
+                                query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
                             }
 
                             rst = FI.GetRecordset(query);
