@@ -583,20 +583,23 @@ namespace AlgoSync
                         {
                             var responseBody = response.Content.ReadAsStringAsync().Result;
                             var jObj = JObject.Parse(responseBody);
+                            var dataArray = jObj["data"] as JArray;
+                            var firstItem = dataArray != null && dataArray.Count > 0 ? dataArray[0] : null;
 
                             bool status = jObj.Value<bool>("status");
-                            if (status)
+
+                            if(status)
                             {
-                                companyName = jObj["data"]?["companyName"]?.ToString() ?? "";
-                                m_UserId = jObj["data"]?["user_id"]?.Value<int>() ?? 0;
-                                m_CompanyId = jObj["data"]?["company_id"]?.Value<int>() ?? 0;
+                                companyName = firstItem["companyName"].ToString();
+                                m_UserId = firstItem["user_id"].Value<int>();
+                                m_CompanyId = firstItem["company_id"].Value<int>();
                             }
                             else
                             {
                                 proceed = false;
-                                errMsg = jObj.Value<string>("message");
+                                errMsg = firstItem["message"].ToString();
                             }
-
+ 
                         }
                         else
                         {
@@ -1330,11 +1333,11 @@ namespace AlgoSync
 
                             if (response.IsSuccessStatusCode)
                             {
-                                var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(responseBody);
+                                var jObj = JObject.Parse(responseBody);
+                                var dataArray = jObj["data"] as JArray;
+                                var firstItem = dataArray != null && dataArray.Count > 0 ? dataArray[0] : null;
 
-                                bool status = jsonObj.Value<bool>("status");
-                                string message = jsonObj.Value<string>("message");
-                                var data = jsonObj["data"];
+                                bool status = jObj.Value<bool>("status");
 
                                 if (status)
                                 {
@@ -1343,7 +1346,7 @@ namespace AlgoSync
                                 else
                                 {
                                     proceed = false;
-                                    errMsg = message;
+                                    errMsg = firstItem["message"].ToString();
                                 }
                             }
                             else
