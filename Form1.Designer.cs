@@ -53,6 +53,7 @@
             this.rbSQL = new System.Windows.Forms.RadioButton();
             this.rbAccess = new System.Windows.Forms.RadioButton();
             this.gbBusy = new System.Windows.Forms.GroupBox();
+            this.lblFinYrNote = new System.Windows.Forms.Label();
             this.btnLoadCompanies = new System.Windows.Forms.Button();
             this.chkBusyPass = new System.Windows.Forms.CheckBox();
             this.lblPassword = new System.Windows.Forms.Label();
@@ -349,6 +350,7 @@
             // 
             // gbBusy
             // 
+            this.gbBusy.Controls.Add(this.lblFinYrNote);
             this.gbBusy.Controls.Add(this.btnLoadCompanies);
             this.gbBusy.Controls.Add(this.chkBusyPass);
             this.gbBusy.Controls.Add(this.lblPassword);
@@ -373,6 +375,16 @@
             this.gbBusy.TabIndex = 62;
             this.gbBusy.TabStop = false;
             this.gbBusy.Text = "Specify Busy Details";
+            // 
+            // lblFinYrNote
+            // 
+            this.lblFinYrNote.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
+            this.lblFinYrNote.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFinYrNote.Location = new System.Drawing.Point(202, 361);
+            this.lblFinYrNote.Name = "lblFinYrNote";
+            this.lblFinYrNote.Size = new System.Drawing.Size(340, 26);
+            this.lblFinYrNote.TabIndex = 88;
+            this.lblFinYrNote.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // btnLoadCompanies
             // 
@@ -982,6 +994,7 @@
         private System.Windows.Forms.Label lblProgress2;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Label lblFinYrNote;
     }
 }
 

@@ -215,9 +215,13 @@ namespace AlgoSync
             lblCRM.BackColor = Form1.DefaultBackColor;
             lblProgress.BackColor = Form1.DefaultBackColor;
             lblProgress2.BackColor = Form1.DefaultBackColor;
+            lblFinYrNote.BackColor = Form1.DefaultBackColor;
 
             btnStop.Enabled = false;
             btnLoadCompanies.Focus();
+
+            lblFinYr.Visible = false;
+            cbFinYr.Visible = false;
         }
 
         void rbBusy_CheckedChanged(object sender, EventArgs e)
@@ -314,6 +318,7 @@ namespace AlgoSync
             cbFinYr.SelectedIndex = -1;
 
             lstCompCodes.Clear();
+            lblFinYrNote.Text = "";
 
             if (rbAccess.Checked)
             {
@@ -386,9 +391,14 @@ namespace AlgoSync
                 {
                     cbFinYr.Items.Add(item);
                     lastFinYear = item.ToString();
+                    lblFinYrNote.Text = "Financial Year : " + lastFinYear ;
                 }
 
                 g_CL.FindComboIndex(cbFinYr, lastFinYear);
+            }
+            else
+            {
+                lblFinYrNote.Text = "";
             }
         }
 
@@ -900,11 +910,13 @@ namespace AlgoSync
                     {
                         if (rbAccess.Checked)
                         {
-                            proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
+                            proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex]);
+                            //proceed = FI.OpenDB(txtAppPath.Text.Trim(), txtDataPath.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
                         }
                         else
                         {
-                            proceed = FI.OpenCSDBForYear(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
+                            proceed = FI.OpenCSDB(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex]);
+                            //proceed = FI.OpenCSDBForYear(txtAppPath.Text.Trim(), txtServerName.Text.Trim(), txtUsername.Text.Trim(), txtPassword.Text.Trim(), lstCompCodes[cbSelectCompany.SelectedIndex], finYear);
                         }
 
                         if (!proceed)
