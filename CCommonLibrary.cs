@@ -12,6 +12,8 @@ namespace AlgoSync
 {
     public static class g_CL
     {
+        public const bool DEBUG_MODE = false;
+
         public const int AGRP_MAST = 1;
         public const int ACC_MAST = 2;
         public const int CCGRP_MAST = 3;
@@ -325,6 +327,38 @@ namespace AlgoSync
                     break;
                 }
             }
+        }
+
+        public static string getVerifyCRMCredsAPIUrl()
+        {
+            string retval = "";
+
+            if(DEBUG_MODE)
+            {
+                retval=ReadVerifyAPIURLFromTextFile();
+            }
+            else
+            {
+                retval = "http://crm.algofast.in/api/integration/verifyUserCompanyPair";
+            }
+
+            return retval;
+        }
+
+        public static string getSetDataAPIUrl()
+        {
+            string retval = "";
+
+            if (DEBUG_MODE)
+            {
+                retval = ReadSetDataAPIURLFromTextFile();
+            }
+            else
+            {
+                retval = "http://crm.algofast.in/api/integration/verifyUserCompanyPair";
+            }
+
+            return retval;
         }
     }
 }

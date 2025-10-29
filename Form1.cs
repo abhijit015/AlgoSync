@@ -575,7 +575,7 @@ namespace AlgoSync
             {
                 try
                 {
-                    string apiUrl = g_CL.ReadVerifyAPIURLFromTextFile();
+                    string apiUrl = g_CL.getVerifyCRMCredsAPIUrl();
                     var payload = new
                     {
                         contact = txtCRMUsername.Text.Trim(),
@@ -1338,7 +1338,7 @@ namespace AlgoSync
                             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                             form.Add(fileContent);
 
-                            string apiUrl = g_CL.ReadSetDataAPIURLFromTextFile();
+                            string apiUrl = g_CL.getSetDataAPIUrl();
 
                             var response = client.PostAsync(apiUrl, form).Result;
                             string responseBody = response.Content.ReadAsStringAsync().Result;

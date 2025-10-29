@@ -1,1 +1,1 @@
-http://192.168.1.29:3000/api/integration/setData
+http://crm.algofast.in/api/integration/setData
