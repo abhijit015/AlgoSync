@@ -1374,7 +1374,7 @@ namespace AlgoSync
                         errMsg = ex.Message;
                     }
 
-                    //System.IO.File.Delete(jsonFilePath);
+                    System.IO.File.Delete(jsonFilePath);
                 }
                 //call crm api and transfer data------------------------
 
