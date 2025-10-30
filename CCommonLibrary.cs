@@ -355,7 +355,7 @@ namespace AlgoSync
             }
             else
             {
-                retval = "https://crm.algofast.in/api/integration/verifyUserCompanyPair";
+                retval = "https://crm.algofast.in/api/integration/setData";
             }
 
             return retval;
