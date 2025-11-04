@@ -97,7 +97,6 @@
             this.chkTallyStockGroup = new System.Windows.Forms.CheckBox();
             this.chkTallyStockItem = new System.Windows.Forms.CheckBox();
             this.chkTallyLedger = new System.Windows.Forms.CheckBox();
-            this.lblProgress2 = new System.Windows.Forms.Label();
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.gbTally.SuspendLayout();
@@ -774,7 +773,7 @@
             this.lblProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblProgress.Location = new System.Drawing.Point(298, 568);
             this.lblProgress.Name = "lblProgress";
-            this.lblProgress.Size = new System.Drawing.Size(574, 25);
+            this.lblProgress.Size = new System.Drawing.Size(574, 62);
             this.lblProgress.TabIndex = 87;
             this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -850,16 +849,6 @@
             this.chkTallyLedger.Text = "Ledger";
             this.chkTallyLedger.UseVisualStyleBackColor = true;
             // 
-            // lblProgress2
-            // 
-            this.lblProgress2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.lblProgress2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProgress2.Location = new System.Drawing.Point(298, 606);
-            this.lblProgress2.Name = "lblProgress2";
-            this.lblProgress2.Size = new System.Drawing.Size(574, 25);
-            this.lblProgress2.TabIndex = 89;
-            this.lblProgress2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // btnStart
             // 
             this.btnStart.Location = new System.Drawing.Point(884, 568);
@@ -887,7 +876,6 @@
             this.ClientSize = new System.Drawing.Size(1227, 650);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
-            this.Controls.Add(this.lblProgress2);
             this.Controls.Add(this.gbTallyMasters);
             this.Controls.Add(this.lblProgress);
             this.Controls.Add(this.gbDataTransferType);
@@ -991,7 +979,6 @@
         private System.Windows.Forms.CheckBox chkTallyStockGroup;
         private System.Windows.Forms.CheckBox chkTallyStockItem;
         private System.Windows.Forms.CheckBox chkTallyLedger;
-        private System.Windows.Forms.Label lblProgress2;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Label lblFinYrNote;

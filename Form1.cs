@@ -25,9 +25,6 @@ namespace AlgoSync
         List<int> checkedMasters = new List<int>();
         int m_UserId;
         int m_CompanyId;
-        Dictionary<int, string> jsonMasters;
-        Dictionary<int, string> xmlMasters;
-        Dictionary<int, string> qryMasters;
         private CancellationTokenSource _cts = null;
 
 
@@ -65,32 +62,6 @@ namespace AlgoSync
             int savedCompanyIdx = -1;
             int savedFinYrIdx = -1;
             int i = 0;
-
-            jsonMasters = new Dictionary<int, string>
-                        {
-                            { g_CL.ACC_MAST, "accounts" },
-                            { g_CL.CONT_GRP_MAST, "contactGroups" },
-                            { g_CL.EXECUTIVE_MAST, "executives" },
-                            { g_CL.ITEM_MAST, "items" },
-                            { g_CL.IGRP_MAST, "itemGroups" },
-                            { g_CL.UNIT_MAST, "units" },
-                            { g_CL.AREA_MAST, "areas" },
-                            { g_CL.STATE_MAST, "states" },
-                            { g_CL.COUNTRY_MAST, "countries" },
-                            { g_CL.CONT_DEPT_MAST, "contactDepartments" },
-                        };
-
-            qryMasters = new Dictionary<int, string>
-                        {
-                            { g_CL.CALL_CATEGORY_ENQUIRY_MAST, "enquiryCategories" },
-                            { g_CL.CRM_SOURCE_MAST, "enquirySources" },
-                            { g_CL.CALL_CATEGORY_SUPPORT_MAST, "supportCategories" },
-                        };
-
-            xmlMasters = new Dictionary<int, string>
-                        {
-                            { g_CL.CONTACT_MAST, "contacts" }
-                        };
 
             try
             {
@@ -214,7 +185,6 @@ namespace AlgoSync
             lblTally.BackColor = Form1.DefaultBackColor;
             lblCRM.BackColor = Form1.DefaultBackColor;
             lblProgress.BackColor = Form1.DefaultBackColor;
-            lblProgress2.BackColor = Form1.DefaultBackColor;
             lblFinYrNote.BackColor = Form1.DefaultBackColor;
 
             btnStop.Enabled = false;
@@ -845,14 +815,6 @@ namespace AlgoSync
 
         }
 
-        string GetMasterTypeTag(int masterType)
-        {
-            if (jsonMasters.TryGetValue(masterType, out string tag)) return tag;
-            if (qryMasters.TryGetValue(masterType, out tag)) return tag;
-            if (xmlMasters.TryGetValue(masterType, out tag)) return tag;
-            return null; // or a default string
-        }
-
         private void txtCRMPassword_TextChanged(object sender, EventArgs e)
         {
             UnvalidateCRMCreds();
@@ -874,15 +836,10 @@ namespace AlgoSync
             bool proceed = true;
             string errMsg = "";
             Dictionary<int, List<object>> codesByMasterType = new Dictionary<int, List<object>>();
-            dynamic rst;
-            string outputJson = "";
-            string query = "";
             JObject finalJson = new JObject();
             string appPath = AppDomain.CurrentDomain.BaseDirectory;
             string jsonFilePath = System.IO.Path.Combine(appPath, "jsonData.txt");
-            string masterTypesCsv = "";
-            long totalMasters = 0;
-            long processedMasters = 0;
+            string outputJson = "";
 
             try
             {
@@ -900,7 +857,6 @@ namespace AlgoSync
                     Cursor.Current = Cursors.WaitCursor;
                     g_CL.SetAllControlsEnabled(this, false);
                     lblProgress.Enabled = true;
-                    lblProgress2.Enabled = true;
                     btnStop.Enabled = true;
                     Application.DoEvents();
 
@@ -933,250 +889,30 @@ namespace AlgoSync
 
                 if (rbBusy.Checked)
                 {
-
-
                     if (proceed)
                     {
                         Cursor.Current = Cursors.WaitCursor;
 
-                        //fetching masters count : start -------------------------------------------
+                        //fetching masters : start -------------------------------------------
                         token.ThrowIfCancellationRequested();
-                        lblProgress.Text = "Fetching count of masters...";
+                        lblProgress.Text = "Fetching data from busy...";
                         Application.DoEvents();
 
-                        masterTypesCsv = string.Join(",", checkedMasters);
-                        query = "SELECT COUNT(code) FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
+                        string masterTypesCsv = string.Join(",", checkedMasters);
+                        string query = "SELECT * FROM MASTER1 AS M1, MASTERADDRESSINFO AS MAI WHERE M1.CODE=MAI.MASTERCODE AND M1.MASTERTYPE IN (" + masterTypesCsv + ")";
                         if (rbIncremental.Checked && m_lastSyncDate.HasValue)
                         {
-                            query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
+                            query += " AND (M1.CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
                         }
 
-                        rst = FI.GetRecordset(query);
+                        dynamic rst = FI.GetRecordset(query);
 
                         if (rst != null && !rst.EOF)
                         {
                             totalMasters = Convert.ToInt32(rst.Fields[0].Value);
                             rst.Close();
                         }
-                        //fetching masters count : end -------------------------------------------
-
-
-
-                        //fetching all json masters : start -------------------------------------------
-                        token.ThrowIfCancellationRequested();
-                        masterTypesCsv = string.Join(
-                            ",",
-                            checkedMasters.Where(m => jsonMasters.ContainsKey(m))
-                        );
-
-                        query = "SELECT CODE, MASTERTYPE FROM MASTER1 WHERE MASTERTYPE IN (" + masterTypesCsv + ")";
-                        if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                        {
-                            query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
-                        }
-                        query += " order by mastertype";
-
-                        rst = FI.GetRecordset(query);
-
-                        if (rst != null)
-                        {
-                            while (!rst.EOF)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
-                                var code = rst.Fields["CODE"].Value;
-
-                                if(masterType== g_CL.ACC_MAST)
-                                {
-                                    if(FI.IfChild(code,g_CL.AG_SUNDRY_CREDITORS) || FI.IfChild(code, g_CL.AG_SUNDRY_DEBTORS))
-                                    {
-                                        if (!codesByMasterType.ContainsKey(masterType))
-                                            codesByMasterType[masterType] = new List<object>();
-
-                                        codesByMasterType[masterType].Add(code);
-                                    }
-                                }
-                                else
-                                {
-                                    if (!codesByMasterType.ContainsKey(masterType))
-                                        codesByMasterType[masterType] = new List<object>();
-
-                                    codesByMasterType[masterType].Add(code);
-                                }
-
-                                rst.MoveNext();
-                            }
-
-                            rst.Close();
-
-                            var groupedJson = new Dictionary<string, List<string>>();
-
-                            foreach (var kvp in codesByMasterType)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                int masterType = kvp.Key;
-                                lblProgress.Text = "Fetching " + GetMasterTypeTag(masterType) + "...";
-                                List<object> codes = kvp.Value;
-
-                                if (!jsonMasters.TryGetValue(masterType, out string tag))
-                                    continue;
-
-                                if (!groupedJson.ContainsKey(tag))
-                                    groupedJson[tag] = new List<string>();
-
-                                foreach (var codeObj in codes)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    long code = Convert.ToInt64(codeObj);
-                                    string json = FI1.GetMastJSON(code);
-                                    processedMasters = processedMasters + 1;
-                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
-                                    Application.DoEvents();
-                                    groupedJson[tag].Add(json);
-                                }
-                            }
-
-                            foreach (var kvp in groupedJson)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                string tag = kvp.Key;
-                                List<string> jsonStrings = kvp.Value;
-
-                                JArray arr = new JArray();
-                                foreach (var jsonStr in jsonStrings)
-                                {
-                                    arr.Add(JObject.Parse(jsonStr));
-                                }
-                                finalJson[tag] = arr;
-                            }
-                        }
-                        //fetching all json masters : end -------------------------------------------
-
-
-
-
-                        //fetching all qry masters : start -------------------------------------------
-                        token.ThrowIfCancellationRequested();
-                        var qryMasterTypes = checkedMasters.Where(m => qryMasters.ContainsKey(m)).ToList();
-                        string qryMasterTypesCsv = string.Join(",", qryMasterTypes);
-
-                        if (qryMasterTypes.Count > 0)
-                        {
-                            lblProgress.Text = "Fetching category and source masters...";
-                            Application.DoEvents();
-
-                            query = "select name,mastertype from master1 where mastertype in (" + qryMasterTypesCsv + ")";
-                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                            {
-                                query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
-                            }
-                            query += " order by mastertype";
-
-                            rst = FI.GetRecordset(query);
-
-                            if (rst != null)
-                            {
-                                var arraysByTag = new Dictionary<string, JArray>();
-                                foreach (var masterType in qryMasterTypes)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    if (qryMasters.TryGetValue(masterType, out string tag))
-                                        arraysByTag[tag] = new JArray();
-                                }
-
-                                while (!rst.EOF)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    int masterType = Convert.ToInt32(rst.Fields["MASTERTYPE"].Value);
-                                    lblProgress.Text = "Processing " + GetMasterTypeTag(masterType) + "...";
-                                    Application.DoEvents();
-                                    string name = rst.Fields["NAME"].Value?.ToString();
-
-                                    if (qryMasters.TryGetValue(masterType, out string tag) && arraysByTag.ContainsKey(tag))
-                                    {
-                                        var obj = new JObject { ["name"] = name };
-                                        arraysByTag[tag].Add(obj);
-                                    }
-
-                                    processedMasters = processedMasters + 1;
-                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
-                                    Application.DoEvents();
-
-                                    rst.MoveNext();
-                                }
-
-                                rst.Close();
-
-                                foreach (var kvp in arraysByTag)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    if (kvp.Value.Count > 0)
-                                        finalJson[kvp.Key] = kvp.Value;
-                                }
-                            }
-                        }
-                        //fetching all qry masters : end -------------------------------------------
-
-
-
-
-                        //fetching all xml masters : start -------------------------------------------
-                        token.ThrowIfCancellationRequested();
-                        if (chkContact.Checked)
-                        {
-                            lblProgress.Text = "Fetching " + GetMasterTypeTag(g_CL.CONTACT_MAST) + "...";
-                            Application.DoEvents();
-
-                            query = "select code from master1 where mastertype in (" + g_CL.CONTACT_MAST + ")";
-                            if (rbIncremental.Checked && m_lastSyncDate.HasValue)
-                            {
-                                query += " AND (CREATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + " OR MODIFICATIONTIME >= " + g_CL.GetDateTimeQryStr(m_lastSyncDate.Value, rbAccess.Checked) + ")";
-                            }
-
-                            rst = FI.GetRecordset(query);
-
-                            if (rst != null)
-                            {
-                                var contacts = new JArray();
-
-                                while (!rst.EOF)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    var code = rst.Fields["CODE"].Value;
-                                    string xmlStr = FI.GetMasterXML(code);
-
-                                    if (!string.IsNullOrWhiteSpace(xmlStr))
-                                    {
-                                        try
-                                        {
-                                            XmlDocument doc = new XmlDocument();
-                                            doc.LoadXml(xmlStr);
-
-                                            string jsonText = JsonConvert.SerializeXmlNode(doc.DocumentElement, Newtonsoft.Json.Formatting.None, true);
-                                            JObject contactObj = JObject.Parse(jsonText);
-
-                                            contacts.Add(contactObj);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            // Optionally handle or log XML/JSON conversion errors
-                                        }
-                                    }
-
-                                    processedMasters = processedMasters + 1;
-                                    lblProgress2.Text = "Masters Processed : " + processedMasters + " out of " + totalMasters + " (" + ((int)Math.Round(processedMasters * 100.0 / totalMasters)).ToString() + "%)";
-                                    Application.DoEvents();
-
-                                    rst.MoveNext();
-                                }
-
-                                rst.Close();
-
-                                if (contacts.Count > 0)
-                                    finalJson[GetMasterTypeTag(g_CL.CONTACT_MAST)] = contacts;
-                            }
-                        }
-                        //fetching all xml masters : end -------------------------------------------
+                        //fetching masters : end -----------------------------------------------
 
                     }
                 }
@@ -1284,7 +1020,6 @@ namespace AlgoSync
                     if (finalJson.HasValues)
                     {
                         lblProgress.Text = "Doing final processing on data...";
-                        lblProgress2.Text = "";
                         Application.DoEvents();
                         outputJson = finalJson.ToString(Newtonsoft.Json.Formatting.None);
                     }
@@ -1410,7 +1145,6 @@ namespace AlgoSync
             finally
             {
                 lblProgress.Text = "";
-                lblProgress2.Text = "";
                 if (rbBusy.Checked) FI.CloseDB();
                 g_CL.SetAllControlsEnabled(this, true);
                 btnStop.Enabled = false;
