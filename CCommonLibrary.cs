@@ -226,7 +226,6 @@ namespace AlgoSync
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             string retval = "";
 
-
             if (File.Exists(filePath))
             {
                 retval = File.ReadAllText(filePath);
@@ -339,7 +338,7 @@ namespace AlgoSync
             }
             else
             {
-                retval = "https://crm.algofast.in/api/integration/verifyUserCompanyPair";
+                retval = "http://192.168.1.100:3008/api/integration/verifyUserCompanyPair";
             }
 
             return retval;
@@ -355,7 +354,7 @@ namespace AlgoSync
             }
             else
             {
-                retval = "https://crm.algofast.in/api/integration/setData";
+                retval = "http://192.168.1.100:3008/api/integration/setData";
             }
 
             return retval;

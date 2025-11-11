@@ -580,7 +580,7 @@ namespace AlgoSync
                     {
                         contact = txtCRMUsername.Text.Trim(),
                         password = txtCRMPassword.Text.Trim(),
-                        c_id = txtCRMCompCode.Text.Trim()
+                        company_name = txtCRMCompCode.Text.Trim()
                     };
 
                     using (var client = new HttpClient())

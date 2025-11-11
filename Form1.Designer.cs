@@ -246,9 +246,9 @@
             this.lblCRMCompCode.AutoSize = true;
             this.lblCRMCompCode.Location = new System.Drawing.Point(16, 138);
             this.lblCRMCompCode.Name = "lblCRMCompCode";
-            this.lblCRMCompCode.Size = new System.Drawing.Size(118, 20);
+            this.lblCRMCompCode.Size = new System.Drawing.Size(122, 20);
             this.lblCRMCompCode.TabIndex = 61;
-            this.lblCRMCompCode.Text = "Company Code";
+            this.lblCRMCompCode.Text = "Company Name";
             // 
             // txtCRMCompCode
             // 
