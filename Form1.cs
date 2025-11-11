@@ -1376,7 +1376,7 @@ namespace AlgoSync
                     }
 
                     
-                    if (!apiUrl.Contains("crm.algofast.in"))
+                    if (apiUrl.Contains("crm.algofast.in"))
                     {
                         System.IO.File.Delete(jsonFilePath);
                     }
