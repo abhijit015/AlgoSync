@@ -220,35 +220,6 @@ namespace AlgoSync
         }
 
 
-        public static string ReadVerifyAPIURLFromTextFile()
-        {
-            string fileName = "verifyCompanyUrl.txt";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            string retval = "";
-
-            if (File.Exists(filePath))
-            {
-                retval = File.ReadAllText(filePath);
-            }
-
-            return retval;
-        }
-
-        public static string ReadSetDataAPIURLFromTextFile()
-        {
-            string fileName = "setDataUrl.txt";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-            string retval = "";
-
-
-            if (File.Exists(filePath))
-            {
-                retval = File.ReadAllText(filePath);
-            }
-
-            return retval;
-        }
-
         public static async Task<string> GetTallyResponseAsync(string p_TallyServer, string p_Payload, string p_ErrStr)
         {
             string apiUrl = "http://" + p_TallyServer;
@@ -330,15 +301,17 @@ namespace AlgoSync
 
         public static string getVerifyCRMCredsAPIUrl()
         {
+            string fileName = "verifyCompanyUrl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             string retval = "";
 
-            if(DEBUG_MODE)
+            if (File.Exists(filePath))
             {
-                retval=ReadVerifyAPIURLFromTextFile();
+                retval = File.ReadAllText(filePath);
             }
             else
             {
-                retval = "http://192.168.1.100:3008/api/integration/verifyUserCompanyPair";
+                retval = "https://crm.algofast.in/api/integration/verifyUserCompanyPair";
             }
 
             return retval;
@@ -346,18 +319,22 @@ namespace AlgoSync
 
         public static string getSetDataAPIUrl()
         {
+            string fileName = "setDataUrl.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             string retval = "";
 
-            if (DEBUG_MODE)
+            if (File.Exists(filePath))
             {
-                retval = ReadSetDataAPIURLFromTextFile();
+                retval = File.ReadAllText(filePath);
             }
             else
             {
-                retval = "http://192.168.1.100:3008/api/integration/setData";
+                retval = "https://crm.algofast.in/api/integration/setData";
             }
 
             return retval;
         }
+
+       
     }
 }

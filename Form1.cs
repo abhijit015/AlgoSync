@@ -883,6 +883,7 @@ namespace AlgoSync
             string masterTypesCsv = "";
             long totalMasters = 0;
             long processedMasters = 0;
+            string apiUrl = "";
 
             try
             {
@@ -1338,7 +1339,7 @@ namespace AlgoSync
                             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                             form.Add(fileContent);
 
-                            string apiUrl = g_CL.getSetDataAPIUrl();
+                             apiUrl = g_CL.getSetDataAPIUrl();
 
                             var response = client.PostAsync(apiUrl, form).Result;
                             string responseBody = response.Content.ReadAsStringAsync().Result;
@@ -1374,7 +1375,13 @@ namespace AlgoSync
                         errMsg = ex.Message;
                     }
 
-                    System.IO.File.Delete(jsonFilePath);
+                    
+                    if (!apiUrl.Contains("crm.algofast.in"))
+                    {
+                        System.IO.File.Delete(jsonFilePath);
+                    }
+                    
+                       
                 }
                 //call crm api and transfer data------------------------
 
